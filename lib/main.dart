@@ -20,7 +20,7 @@ class VizioRemoteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Vizio Remote",
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: true,
       theme: ThemeData.dark(),
       home: seenOnboarding ? const HomeScreen() : const IntroScreen(),
     );
