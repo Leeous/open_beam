@@ -1,24 +1,33 @@
 import 'package:flutter/material.dart';
+import 'intro_screen.dart';
 import 'home_screen.dart';
-import 'settings_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const VizioRemoteApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final seenOnboarding = prefs.getBool('seenOnboarding') ?? false;
+
+  runApp(VizioRemoteApp(seenOnboarding: seenOnboarding));
 }
 
 class VizioRemoteApp extends StatelessWidget {
-  const VizioRemoteApp({super.key});
+  final bool seenOnboarding;
+  const VizioRemoteApp({super.key, required this.seenOnboarding});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Vizio Remote",
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: const HomeScreen(),
+      home: seenOnboarding ? const HomeScreen() : const IntroScreen(),
     );
   }
 }
+
+
 
 // class RemoteHomeScreen extends StatelessWidget {
   
