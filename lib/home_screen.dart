@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vizio_remote/remote_screen.dart';
+import 'package:vizio_remote/settings_screen.dart';
 import 'tv_list_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -8,6 +9,11 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext build) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Vizio Remote'),
+        backgroundColor: Colors.black12,
+        foregroundColor: Colors.amber,
+      ),
       body: SafeArea(
         child: ListView(
           children: <Widget>[
@@ -30,7 +36,20 @@ class HomeScreen extends StatelessWidget {
                 Navigator.push(
                   build,
                   MaterialPageRoute<dynamic>(
-                    builder: (context) => RemoteScreen(),
+                    builder: (context) =>
+                        RemoteScreen(tvName: '', tvIp: '', authToken: ''),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Settings'),
+              onTap: () {
+                Navigator.push(
+                  build,
+                  MaterialPageRoute<dynamic>(
+                    builder: (context) => SettingsScreen(),
                   ),
                 );
               },
