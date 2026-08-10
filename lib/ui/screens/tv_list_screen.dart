@@ -1,12 +1,10 @@
-import 'dart:io';
-
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:vizio_remote/data/models/discovered_tv.dart';
 import 'package:vizio_remote/data/repositories/tv_cache_repository.dart';
 import 'package:vizio_remote/main.dart'; // Location of your GetIt locator instance
-import 'package:vizio_remote/remote_screen.dart';
+import 'package:vizio_remote/ui/screens/remote_screen.dart';
 import 'package:vizio_remote/services/vizio_remote_service.dart';
+import 'package:vizio_remote/services/device_info_helper.dart';
 
 class TVListScreen extends StatefulWidget {
   const TVListScreen({super.key});
@@ -68,7 +66,7 @@ class _TVListScreenState extends State<TVListScreen> {
   }
 
   Future<void> _executePairingFlow(DiscoveredTv tv) async {
-    final localDeviceName = await _resolveLocalDeviceName();
+    final localDeviceName = await DeviceInfoHelper.getHostDeviceName();
     final deviceId = _buildDeviceId(localDeviceName);
     final remoteService = VizioRemoteService(tvIp: tv.ipAddress, port: tv.port);
 
@@ -214,48 +212,6 @@ class _TVListScreenState extends State<TVListScreen> {
         .trim();
 
     return 'VIZIO_REMOTE_${cleaned.isEmpty ? 'APP' : cleaned}';
-  }
-
-  Future<String> _resolveLocalDeviceName() async {
-    try {
-      if (Platform.isAndroid) {
-        final androidInfo = await DeviceInfoPlugin().androidInfo;
-        final deviceName = androidInfo.device;
-        final model = androidInfo.model;
-        if (deviceName.isNotEmpty) return deviceName;
-        if (model.isNotEmpty) return model;
-        return 'Android Device';
-      }
-
-      if (Platform.isLinux) {
-        final hostname = Platform.localHostname;
-        if (hostname.isNotEmpty) return hostname;
-
-        final osReleaseFile = File('/etc/os-release');
-        if (await osReleaseFile.exists()) {
-          final lines = await osReleaseFile.readAsLines();
-          final prettyName = _parseOsReleaseValue(lines, 'PRETTY_NAME');
-          if (prettyName.isNotEmpty) return prettyName;
-          final name = _parseOsReleaseValue(lines, 'NAME');
-          if (name.isNotEmpty) return name;
-        }
-
-        return 'Linux Device';
-      }
-    } catch (_) {
-      // Fall back on platform discovery failure
-    }
-
-    return 'Flutter Device';
-  }
-
-  String _parseOsReleaseValue(List<String> lines, String key) {
-    for (final line in lines) {
-      if (line.startsWith('$key=')) {
-        return line.split('=')[1].replaceAll('"', '').trim();
-      }
-    }
-    return '';
   }
 
   @override

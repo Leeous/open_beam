@@ -32,6 +32,11 @@ class _IntroScreenState extends State<IntroScreen> {
           'Access volume, power, and app launching with smooth button controls.',
       icon: Icons.touch_app,
     ),
+    IntroData(
+      title: "No sign-in, no data collection.",
+      description: "No need to sign-in just to control YOUR Smart TV.",
+      icon: Icons.link_off,
+    ),
   ];
 
   Future<void> _completeOnboarding() async {
@@ -149,7 +154,10 @@ class _IntroScreenState extends State<IntroScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 20,
+                      ),
                     ),
                     child: Text(isLastPage ? 'Get Started' : 'Next'),
                   ),
