@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.vizio_remote"
-    compileSdk = flutter.compileSdkVersion
+    // flutter.compileSdkVersion may point to 36; explicitly require 37 to satisfy some plugin AAR metadata
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -15,8 +16,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.vizio_remote"
+        applicationId = "com.leeous.vizio_remote"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
