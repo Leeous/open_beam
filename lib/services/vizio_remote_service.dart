@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:vizio_remote/services/logging_helper.dart';
 
 class VizioRemoteService {
   final String tvIp;
@@ -62,31 +63,32 @@ class VizioRemoteService {
           return jsonDecode(response.body) as Map<String, dynamic>?;
         }
 
-        print('HTTP Error: ${response.statusCode} - ${response.body}');
+        dPrint('HTTP Error: ${response.statusCode} - ${response.body}');
+
         return null;
       } on TimeoutException catch (e) {
         if (attempt >= maxAttempts) {
-          print('Request timed out: $e');
+          dPrint('Request timed out: $e');
           return null;
         }
         currentTimeout = Duration(seconds: currentTimeout.inSeconds * 2);
         await Future<void>.delayed(const Duration(milliseconds: 200));
       } on http.ClientException catch (e) {
         if (attempt >= maxAttempts) {
-          print('Connection Error: $e');
+          dPrint('Connection Error: $e');
           return null;
         }
         currentTimeout = Duration(seconds: currentTimeout.inSeconds + 4);
         await Future<void>.delayed(const Duration(milliseconds: 200));
       } on SocketException catch (e) {
         if (attempt >= maxAttempts) {
-          print('Socket Error: $e');
+          dPrint('Socket Error: $e');
           return null;
         }
         currentTimeout = Duration(seconds: currentTimeout.inSeconds + 4);
         await Future<void>.delayed(const Duration(milliseconds: 200));
       } catch (error) {
-        print('Connection Error: $error');
+        dPrint('Connection Error: $error');
         return null;
       }
     }
@@ -178,8 +180,8 @@ class VizioRemoteService {
   void _debugLog(String label, String url, {required Object? body}) {
     if (!kDebugMode) return;
     final payload = body is String ? body : jsonEncode(body);
-    print('VizioRemoteService: $label $url');
-    print('VizioRemoteService: BODY $payload');
+    dPrint('VizioRemoteService: $label $url');
+    dPrint('VizioRemoteService: BODY $payload');
   }
 }
 
