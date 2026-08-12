@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vizio_remote/ui/screens/about_screen.dart';
 import 'package:vizio_remote/ui/widgets/app_bar.dart';
-import 'package:vizio_remote/ui/widgets/menu_tile.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,11 +11,38 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  SharedPreferences? _prefs;
+  bool _isLoading = true;
   bool _darkMode = true;
   bool _hapticFeedback = true;
 
   @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _updateHaptics(bool value) async {
+    setState(() => _hapticFeedback = value);
+
+    await _prefs?.setBool('haptics_enabled', value);
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _prefs = prefs;
+      _hapticFeedback = prefs.getBool('haptics_enabled') ?? true;
+      _isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: DefaultAppBar(title: "Settings", showAppIcon: false),
       body: SafeArea(
@@ -35,8 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Text("Haptic Feedback"),
               secondary: Icon(Icons.vibration),
               value: _hapticFeedback,
-              onChanged: (bool value) =>
-                  setState(() => _hapticFeedback = value),
+              onChanged: _updateHaptics,
             ),
             ListTile(
               leading: Icon(Icons.info),

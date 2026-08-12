@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vizio_remote/services/vizio_remote_service.dart';
 
 class RemoteScreen extends StatefulWidget {
@@ -21,7 +23,8 @@ class RemoteScreen extends StatefulWidget {
 
 class _RemoteScreenState extends State<RemoteScreen> {
   late final VizioRemoteService _service;
-  bool _isSending = false;
+  bool _isLoading = true;
+  bool _hapticFeedback = true;
 
   @override
   void initState() {
@@ -31,22 +34,32 @@ class _RemoteScreenState extends State<RemoteScreen> {
       port: widget.port,
       authToken: widget.authToken,
     );
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _hapticFeedback = prefs.getBool('haptics_enabled') ?? true;
+      _isLoading = false;
+    });
   }
 
   Future<void> _sendKey(int codeSet, int code, String actionName) async {
-    if (!mounted) return;
-
-    setState(() => _isSending = true);
+    // Only play haptics if enabled in settings_screen
+    if (_hapticFeedback) {
+      HapticFeedback.lightImpact();
+    }
 
     await _service.sendKeyPress(codeSet, code);
-
-    if (!mounted) return;
-
-    setState(() => _isSending = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
