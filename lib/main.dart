@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:vizio_remote/data/repositories/tv_cache_repository.dart';
-import 'intro_screen.dart';
-import 'home_screen.dart';
+import 'package:vizio_remote/ui/screens/screens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 final GetIt getIt = GetIt.instance;
