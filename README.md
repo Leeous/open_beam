@@ -1,5 +1,8 @@
 <div align="center">
 
+
+<img src="assets/icon/icon.svg" width="96">
+
 # Vizio Remote
 
 A cross-platform Vizio SmartCast remote control application built with Flutter.
