@@ -65,9 +65,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           IconButton(
             icon: const Icon(Icons.power_settings_new, color: Colors.redAccent),
             tooltip: 'Power Toggle',
-            onPressed: _isSending
-                ? null
-                : () => _sendKey(11, 0, 'Power Toggle'),
+            onPressed: () => _sendKey(11, 0, 'Power Toggle'),
           ),
         ],
       ),
@@ -112,7 +110,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             ElevatedButton(
               style: dpadButtonStyle(radii: [16, 16, 0, 0]),
-              onPressed: _isSending ? null : () => _sendKey(3, 8, 'Up'),
+              onPressed: () => _sendKey(3, 8, 'Up'),
               child: const Icon(Icons.keyboard_arrow_up),
             ),
             const SizedBox(width: 8),
@@ -121,17 +119,17 @@ class _RemoteScreenState extends State<RemoteScreen> {
               children: [
                 ElevatedButton(
                   style: dpadButtonStyle(radii: [16, 0, 0, 16]),
-                  onPressed: _isSending ? null : () => _sendKey(3, 1, 'Left'),
+                  onPressed: () => _sendKey(3, 1, 'Left'),
                   child: const Icon(Icons.keyboard_arrow_left),
                 ),
                 ElevatedButton(
                   style: dpadButtonStyle(),
-                  onPressed: _isSending ? null : () => _sendKey(3, 2, 'OK'),
+                  onPressed: () => _sendKey(3, 2, 'OK'),
                   child: const Icon(Icons.circle),
                 ),
                 ElevatedButton(
                   style: dpadButtonStyle(radii: [0, 16, 16, 0]),
-                  onPressed: _isSending ? null : () => _sendKey(3, 7, 'Right'),
+                  onPressed: () => _sendKey(3, 7, 'Right'),
                   child: const Icon(Icons.keyboard_arrow_right),
                 ),
               ],
@@ -139,7 +137,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             const SizedBox(width: 8),
             ElevatedButton(
               style: dpadButtonStyle(radii: [0, 0, 16, 16]),
-              onPressed: _isSending ? null : () => _sendKey(3, 0, 'Down'),
+              onPressed: () => _sendKey(3, 0, 'Down'),
               child: const Icon(Icons.keyboard_arrow_down),
             ),
           ],
@@ -156,14 +154,12 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             IconButton.filledTonal(
               icon: const Icon(Icons.volume_up),
-              onPressed: _isSending ? null : () => _sendKey(5, 1, 'Volume Up'),
+              onPressed: () => _sendKey(5, 1, 'Volume Up'),
             ),
             const Padding(padding: EdgeInsets.all(10), child: Text('Volume')),
             IconButton.filledTonal(
               icon: const Icon(Icons.volume_down),
-              onPressed: _isSending
-                  ? null
-                  : () => _sendKey(5, 0, 'Volume Down'),
+              onPressed: () => _sendKey(5, 0, 'Volume Down'),
             ),
           ],
         ),
@@ -172,7 +168,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Mute')),
             IconButton.outlined(
               icon: const Icon(Icons.volume_off),
-              onPressed: _isSending ? null : () => _sendKey(5, 2, 'Mute'),
+              onPressed: () => _sendKey(5, 2, 'Mute'),
             ),
           ],
         ),
@@ -181,7 +177,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Home')),
             IconButton.outlined(
               icon: const Icon(Icons.home),
-              onPressed: _isSending ? null : () => _sendKey(4, 3, 'Home'),
+              onPressed: () => _sendKey(4, 3, 'Home'),
             ),
           ],
         ),
