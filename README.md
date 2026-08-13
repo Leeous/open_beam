@@ -1,7 +1,7 @@
 <div align="center">
 
 
-<img src="assets/icon/icon.svg" width="96">
+<img src="https://raw.githubusercontent.com/Leeous/vizio_remote/main/assets/icon/icon.svg" width="96">
 
 # Vizio Remote
 
