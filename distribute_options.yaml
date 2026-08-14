@@ -1,0 +1,6 @@
+output: dist/
+targets:
+  - name: appimage
+    package:
+      platform: linux
+      target: appimage
