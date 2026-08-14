@@ -5,15 +5,11 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool showBackButton;
   final bool showAppIcon;
-  final Color foregroundColor;
-  final Color backgroundColor;
 
   const DefaultAppBar({
     super.key,
     this.title = "Vizio Remote",
     this.actions,
-    this.backgroundColor = Colors.black12,
-    this.foregroundColor = const Color(0xFFFFD42A),
     this.showBackButton = true,
     this.showAppIcon = false,
   });
@@ -36,8 +32,6 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
-      foregroundColor: foregroundColor,
-      backgroundColor: backgroundColor,
     );
   }
 }
