@@ -1,6 +1,54 @@
 output: dist/
-targets:
-  - name: appimage
-    package:
-      platform: linux
-      target: appimage
+app_name: vizio_remote
+
+# Global build arguments applied across targets
+build_args:
+  --build-name: "1.0.0"
+  --build-number: 1
+
+releases:
+  # Profile for building on Linux hosts
+  - name: linux-and-android
+    jobs:
+      - name: linux-appimage
+        package:
+          platform: linux
+          target: appimage
+          desktop_file: linux/packaging/vizio_remote.desktop
+
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb
+          desktop_file: linux/packaging/vizio_remote.desktop
+
+      - name: linux-tar
+        package:
+          platform: linux
+          target: archive
+          format: tar.gz
+
+      - name: android-apk
+        package:
+          platform: android
+          target: apk
+          build_args:
+            split-per-abi: true
+
+      - name: android-aab
+        package:
+          platform: android
+          target: aab
+
+  # Profile intended strictly for Windows hosts / Windows GitHub Action Runners
+  - name: windows
+    jobs:
+      - name: windows-exe
+        package:
+          platform: windows
+          target: exe
+
+      - name: windows-zip
+        package:
+          platform: windows
+          target: zip
