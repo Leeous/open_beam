@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vizio_remote/ui/screens/about_screen.dart';
+import 'package:vizio_remote/ui/theme_controller.dart';
 import 'package:vizio_remote/ui/widgets/app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -13,7 +14,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   SharedPreferences? _prefs;
   bool _isLoading = true;
-  bool _darkMode = true;
+  bool _lightMode = false;
   bool _hapticFeedback = true;
   bool _reverseRemoteOrder = false;
 
@@ -33,6 +34,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() => _reverseRemoteOrder = value);
 
     await _prefs?.setBool('reverse_remote_order', value);
+  }
+
+  Future<void> _updateLightMode(bool value) async {
+    setState(() => _lightMode = value);
+
+    await _prefs?.setBool('enable_light_mode', value);
   }
 
   Future<void> _loadPreferences() async {
@@ -56,25 +63,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: SafeArea(
         child: ListView(
           children: [
-            ListTile(
-              leading: Icon(Icons.av_timer),
-              title: Text("Pairing Timeout"),
-            ),
             SwitchListTile(
-              title: const Text("Dark mode"),
-              secondary: Icon(Icons.dark_mode),
-              value: _darkMode,
-              onChanged: (bool value) => setState(() => _darkMode = value),
+              title: const Text("Light mode"),
+              secondary: Icon(Icons.light_mode),
+              subtitle: const Text("Enable/Disable light mode."),
+              value: _lightMode,
+              onChanged: (bool value) => {
+                setState(() {
+                  _lightMode = value;
+                }),
+                ThemeController.updateTheme(
+                  value ? ThemeMode.light : ThemeMode.dark,
+                ),
+              },
             ),
             SwitchListTile(
               title: const Text("Reverse remote order"),
               secondary: Icon(Icons.sort),
+              subtitle: Text(
+                "Reverses remote render order, control row at the top, d-pad at the bottom.",
+              ),
               value: _reverseRemoteOrder,
               onChanged: _updateReverseRemoteOrder,
             ),
             SwitchListTile(
               title: Text("Haptic Feedback"),
               secondary: Icon(Icons.vibration),
+              subtitle: Text(
+                "Enable/Disable haptic feedback on remote presses.",
+              ),
               value: _hapticFeedback,
               onChanged: _updateHaptics,
             ),
