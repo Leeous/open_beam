@@ -25,6 +25,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
   late final VizioRemoteService _service;
   bool _isLoading = true;
   bool _hapticFeedback = true;
+  bool _reverseRemoteOrder = false;
 
   @override
   void initState() {
@@ -41,6 +42,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _hapticFeedback = prefs.getBool('haptics_enabled') ?? true;
+      _reverseRemoteOrder = prefs.getBool('reverse_remote_order') ?? false;
       _isLoading = false;
     });
   }
@@ -59,6 +61,12 @@ class _RemoteScreenState extends State<RemoteScreen> {
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    final children = [_buildDPad(context), _buildControlRow(context)];
+
+    final orderedWidgets = _reverseRemoteOrder
+        ? children.reversed.toList()
+        : children;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +93,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [_buildDPad(context), _buildControlRow(context)],
+          children: orderedWidgets,
         ),
       ),
     );
@@ -104,12 +112,13 @@ class _RemoteScreenState extends State<RemoteScreen> {
     }
 
     ButtonStyle dpadButtonStyle({
-      double iconSize = 128,
+      double iconSize = 80,
       Size minimumSize = const Size(128, 128),
       List<double>? radii,
     }) {
       return ElevatedButton.styleFrom(
         minimumSize: minimumSize,
+        iconSize: iconSize,
         padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: parseRadii(radii)),
       );
@@ -136,7 +145,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
                   child: const Icon(Icons.keyboard_arrow_left),
                 ),
                 ElevatedButton(
-                  style: dpadButtonStyle(),
+                  style: dpadButtonStyle(iconSize: 32),
                   onPressed: () => _sendKey(3, 2, 'OK'),
                   child: const Icon(Icons.circle),
                 ),
@@ -163,6 +172,15 @@ class _RemoteScreenState extends State<RemoteScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
+        Column(
+          children: [
+            Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Back')),
+            IconButton.outlined(
+              onPressed: () => _sendKey(4, 0, "Back"),
+              icon: const Icon(Icons.arrow_back),
+            ),
+          ],
+        ),
         Column(
           children: [
             IconButton.filledTonal(

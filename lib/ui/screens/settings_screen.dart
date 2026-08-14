@@ -15,6 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = true;
   bool _darkMode = true;
   bool _hapticFeedback = true;
+  bool _reverseRemoteOrder = false;
 
   @override
   void initState() {
@@ -28,11 +29,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _prefs?.setBool('haptics_enabled', value);
   }
 
+  Future<void> _updateReverseRemoteOrder(bool value) async {
+    setState(() => _reverseRemoteOrder = value);
+
+    await _prefs?.setBool('reverse_remote_order', value);
+  }
+
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _prefs = prefs;
       _hapticFeedback = prefs.getBool('haptics_enabled') ?? true;
+      _reverseRemoteOrder = prefs.getBool('reverse_remote_order') ?? false;
       _isLoading = false;
     });
   }
@@ -57,6 +65,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               secondary: Icon(Icons.dark_mode),
               value: _darkMode,
               onChanged: (bool value) => setState(() => _darkMode = value),
+            ),
+            SwitchListTile(
+              title: const Text("Reverse remote order"),
+              secondary: Icon(Icons.sort),
+              value: _reverseRemoteOrder,
+              onChanged: _updateReverseRemoteOrder,
             ),
             SwitchListTile(
               title: Text("Haptic Feedback"),
