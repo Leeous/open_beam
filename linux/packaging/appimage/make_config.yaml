@@ -1,0 +1,7 @@
+add_id: com.leeous.vizio_remote
+display_name: Vizio Remote
+icon: assets/icon/icon.png
+
+keywords:
+  - Utility
+  - Remote
