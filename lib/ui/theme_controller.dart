@@ -9,13 +9,14 @@ class ThemeController {
     ThemeMode.system,
   );
 
-  // Call this in main() before runApp()
   static Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
     final savedIndex = prefs.getInt(_themeKey);
 
     if (savedIndex != null) {
       themeNotifier.value = ThemeMode.values[savedIndex];
+    } else {
+      themeNotifier.value = ThemeMode.light;
     }
   }
 

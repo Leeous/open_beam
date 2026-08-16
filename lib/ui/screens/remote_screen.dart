@@ -176,7 +176,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Back')),
             IconButton.outlined(
-              onPressed: () => _sendKey(4, 0, "Back"),
+              onPressed: () => _sendKey(4, 0, 'Back'),
               icon: const Icon(Icons.arrow_back),
             ),
           ],

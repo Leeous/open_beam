@@ -14,21 +14,21 @@ class HomeScreen extends StatelessWidget {
           children: <Widget>[
             MenuTile(
               icon: Icons.tv_sharp,
-              text: "TVs",
+              text: 'TVs',
               destination: TVListScreen(),
             ),
             MenuTile(
               icon: Icons.gamepad,
-              text: "Remote",
+              text: 'Remote',
               destination: RemoteScreen(
-                tvName: "tvName",
-                tvIp: "",
-                authToken: "",
+                tvName: 'tvName',
+                tvIp: '',
+                authToken: '',
               ),
             ),
             MenuTile(
               icon: Icons.settings,
-              text: "Settings",
+              text: 'Settings',
               destination: SettingsScreen(),
             ),
           ],

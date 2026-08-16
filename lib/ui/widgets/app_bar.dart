@@ -8,7 +8,7 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   const DefaultAppBar({
     super.key,
-    this.title = "Vizio Remote",
+    this.title = 'Vizio Remote',
     this.actions,
     this.showBackButton = true,
     this.showAppIcon = false,
@@ -26,7 +26,7 @@ class DefaultAppBar extends StatelessWidget implements PreferredSizeWidget {
           SizedBox(width: 4),
           if (showAppIcon)
             Image.asset(
-              "assets/icon/icon.png",
+              'assets/icon/icon.png',
               fit: BoxFit.contain,
               height: 35,
             ),

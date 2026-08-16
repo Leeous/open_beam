@@ -36,7 +36,7 @@ class VizioRemoteApp extends StatelessWidget {
       valueListenable: ThemeController.themeNotifier,
       builder: (context, currentMode, child) {
         return MaterialApp(
-          title: "Vizio Remote",
+          title: 'Vizio Remote',
           debugShowCheckedModeBanner: true,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,

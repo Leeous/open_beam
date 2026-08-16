@@ -130,7 +130,7 @@ class TvCacheRepository {
     final List<Future<void>> scanFutures = [];
 
     for (int i = 1; i < 255; i++) {
-      final String targetIp = "$subnetPrefix$i";
+      final String targetIp = '$subnetPrefix$i';
 
       for (int port in targetPorts) {
         scanFutures.add(

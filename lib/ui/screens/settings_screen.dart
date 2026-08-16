@@ -59,14 +59,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
 
     return Scaffold(
-      appBar: DefaultAppBar(title: "Settings", showAppIcon: false),
+      appBar: DefaultAppBar(title: 'Settings', showAppIcon: false),
       body: SafeArea(
         child: ListView(
           children: [
             SwitchListTile(
-              title: const Text("Light mode"),
+              title: const Text('Light mode'),
               secondary: Icon(Icons.light_mode),
-              subtitle: const Text("Enable/Disable light mode."),
+              subtitle: const Text('Enable/Disable light mode.'),
               value: _lightMode,
               onChanged: (bool value) => {
                 setState(() {
@@ -78,26 +78,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
             SwitchListTile(
-              title: const Text("Reverse remote order"),
+              title: const Text('Reverse remote order'),
               secondary: Icon(Icons.sort),
               subtitle: Text(
-                "Reverses remote render order, control row at the top, d-pad at the bottom.",
+                'Reverses remote render order, control row at the top, d-pad at the bottom.',
               ),
               value: _reverseRemoteOrder,
               onChanged: _updateReverseRemoteOrder,
             ),
             SwitchListTile(
-              title: Text("Haptic Feedback"),
+              title: Text('Haptic Feedback'),
               secondary: Icon(Icons.vibration),
               subtitle: Text(
-                "Enable/Disable haptic feedback on remote presses.",
+                'Enable/Disable haptic feedback on remote presses.',
               ),
               value: _hapticFeedback,
               onChanged: _updateHaptics,
             ),
+            // ListTile(leading: Icon(Icons.refresh), title: Text("Reset to defaults"), onTap: SharedPreferences.,),
             ListTile(
               leading: Icon(Icons.info),
-              title: Text("About"),
+              title: Text('About'),
               onTap: () => {
                 Navigator.of(context).push(
                   MaterialPageRoute<dynamic>(builder: (_) => AboutScreen()),

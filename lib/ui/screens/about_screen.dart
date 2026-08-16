@@ -170,7 +170,7 @@ class _LegalAndLicensesSection extends StatelessWidget {
               applicationIcon: Padding(
                 padding: EdgeInsets.all(10.0),
                 child: Image.asset(
-                  "assets/icon/icon.png",
+                  'assets/icon/icon.png',
                   height: 128,
                   width: 128,
                 ),

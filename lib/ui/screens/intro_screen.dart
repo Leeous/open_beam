@@ -33,8 +33,8 @@ class _IntroScreenState extends State<IntroScreen> {
       icon: Icons.touch_app,
     ),
     IntroData(
-      title: "No sign-in, no data collection.",
-      description: "No need to sign-in just to control YOUR Smart TV.",
+      title: 'No sign-in, no data collection.',
+      description: 'No need to sign-in just to control YOUR Smart TV.',
       icon: Icons.link_off,
     ),
   ];
