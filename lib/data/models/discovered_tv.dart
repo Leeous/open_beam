@@ -1,4 +1,4 @@
-/// Represents a discovered Vizio TV and its network configuration.
+/// Represents a discovered Smart TV and its network configuration.
 ///
 /// Stores connectivity metadata and optional pairing credentials to enable
 /// caching and automatic reconnection across DHCP IP address changes.

@@ -7,7 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/io_client.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vizio_remote/data/models/discovered_tv.dart';
+import 'package:open_beam/data/models/discovered_tv.dart';
 
 class TvCacheRepository {
   static const String _discoveredKey = 'cached_discovered_tvs';

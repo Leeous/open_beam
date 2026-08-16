@@ -22,6 +22,6 @@ class DeviceInfoHelper {
       }
     } catch (_) {}
 
-    return 'Vizio Remote';
+    return 'Open Beam Remote';
   }
 }

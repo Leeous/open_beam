@@ -15,26 +15,23 @@ class _IntroScreenState extends State<IntroScreen> {
 
   final List<IntroData> _pages = const [
     IntroData(
-      title: 'Control Your Vizio TV',
-      description:
-          'Turn your phone into a full-featured remote control over your local Wi-Fi.',
+      title: 'Control Your Smart TV',
+      description: 'Turn your phone into a full-featured remote control over your local Wi-Fi.',
       icon: Icons.tv,
     ),
     IntroData(
       title: 'Seamless Pairing',
-      description:
-          'Connect quickly using your TV IP address with secure HTTPS communication.',
+      description: 'Connect quickly using your TV IP address with quick HTTPS communication.',
       icon: Icons.wifi,
     ),
     IntroData(
       title: 'Custom Shortcuts',
-      description:
-          'Access volume, power, and app launching with smooth button controls.',
+      description: 'Access volume, power, and app launching with smooth button controls.',
       icon: Icons.touch_app,
     ),
     IntroData(
       title: 'No sign-in, no data collection.',
-      description: 'No need to sign-in just to control YOUR Smart TV.',
+      description: 'No need to sign-in just to control your Smart TV.',
       icon: Icons.link_off,
     ),
   ];
@@ -69,10 +66,7 @@ class _IntroScreenState extends State<IntroScreen> {
             // Skip Button
             Align(
               alignment: Alignment.topRight,
-              child: TextButton(
-                onPressed: _completeOnboarding,
-                child: const Text('Skip'),
-              ),
+              child: TextButton(onPressed: _completeOnboarding, child: const Text('Skip')),
             ),
 
             // Swipeable Slides
@@ -90,23 +84,21 @@ class _IntroScreenState extends State<IntroScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          item.icon,
-                          size: 100,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        Icon(item.icon, size: 100, color: Theme.of(context).colorScheme.primary),
                         const SizedBox(height: 32),
                         Text(
                           item.title,
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           item.description,
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(color: Colors.grey[600]),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -154,10 +146,7 @@ class _IntroScreenState extends State<IntroScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 20,
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                     ),
                     child: Text(isLastPage ? 'Get Started' : 'Next'),
                   ),
@@ -176,9 +165,5 @@ class IntroData {
   final String description;
   final IconData icon;
 
-  const IntroData({
-    required this.title,
-    required this.description,
-    required this.icon,
-  });
+  const IntroData({required this.title, required this.description, required this.icon});
 }

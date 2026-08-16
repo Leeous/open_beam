@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:vizio_remote/data/models/discovered_tv.dart';
-import 'package:vizio_remote/data/repositories/tv_cache_repository.dart';
-import 'package:vizio_remote/main.dart'; // Location of your GetIt locator instance
-import 'package:vizio_remote/ui/screens/remote_screen.dart';
-import 'package:vizio_remote/services/vizio_remote_service.dart';
-import 'package:vizio_remote/services/device_info_helper.dart';
+import 'package:open_beam/data/models/discovered_tv.dart';
+import 'package:open_beam/data/repositories/tv_cache_repository.dart';
+import 'package:open_beam/main.dart'; // Location of your GetIt locator instance
+import 'package:open_beam/ui/screens/remote_screen.dart';
+import 'package:open_beam/services/vizio_remote_service.dart';
+import 'package:open_beam/services/device_info_helper.dart';
 
 class TVListScreen extends StatefulWidget {
   const TVListScreen({super.key});
@@ -84,9 +84,9 @@ class _TVListScreenState extends State<TVListScreen> {
     Navigator.of(context).pop(); // Dismiss loading dialog
 
     if (challenge == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to initiate pairing with TV.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to initiate pairing with TV.')));
       return;
     }
 
@@ -109,18 +109,13 @@ class _TVListScreenState extends State<TVListScreen> {
 
     if (authToken == null || authToken.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pairing failed. Please check the PIN and try again.'),
-        ),
+        const SnackBar(content: Text('Pairing failed. Please check the PIN and try again.')),
       );
       return;
     }
 
     // Save auth token & updated TV state to repository
-    final updatedTv = tv.copyWith(
-      authToken: authToken,
-      lastSeen: DateTime.now(),
-    );
+    final updatedTv = tv.copyWith(authToken: authToken, lastSeen: DateTime.now());
     await _tvRepo.saveTv(updatedTv);
 
     // Refresh UI list state
@@ -144,12 +139,8 @@ class _TVListScreenState extends State<TVListScreen> {
     Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (context) => RemoteScreen(
-          tvName: tvName,
-          tvIp: tvIp,
-          port: port,
-          authToken: authToken,
-        ),
+        builder: (context) =>
+            RemoteScreen(tvName: tvName, tvIp: tvIp, port: port, authToken: authToken),
       ),
     );
   }
@@ -159,10 +150,7 @@ class _TVListScreenState extends State<TVListScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Center(child: CircularProgressIndicator()),
-        ),
+        content: SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
       ),
     );
   }
@@ -183,18 +171,12 @@ class _TVListScreenState extends State<TVListScreen> {
               controller: controller,
               keyboardType: TextInputType.number,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'TV PIN',
-                border: OutlineInputBorder(),
-              ),
+              decoration: const InputDecoration(labelText: 'TV PIN', border: OutlineInputBorder()),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
             child: const Text('Confirm PIN'),
@@ -218,7 +200,7 @@ class _TVListScreenState extends State<TVListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vizio Remote'),
+        title: const Text('Open Beam'),
         actions: [
           IconButton(
             icon: _isScanning
@@ -254,10 +236,7 @@ class _TVListScreenState extends State<TVListScreen> {
           children: [
             const Icon(Icons.tv_off, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            const Text(
-              'No Vizio TVs Found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            const Text('No TVs Found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             const Text(
               'Ensure your TV is turned on and connected\nto the same Wi-Fi network.',
@@ -283,30 +262,15 @@ class _TVListScreenState extends State<TVListScreen> {
         final isOnline = entry.isOnline;
 
         return ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 8,
-          ),
-          leading: Icon(
-            Icons.tv,
-            size: 32,
-            color: isOnline ? Colors.green : Colors.grey,
-          ),
-          title: Text(
-            tv.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            '${tv.ipAddress}:${tv.port} • ${tv.isPaired ? "Paired" : "Not Paired"}',
-          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          leading: Icon(Icons.tv, size: 32, color: isOnline ? Colors.green : Colors.grey),
+          title: Text(tv.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('${tv.ipAddress}:${tv.port} • ${tv.isPaired ? "Paired" : "Not Paired"}'),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: isOnline
                       ? Colors.green.withValues(alpha: 0.15)

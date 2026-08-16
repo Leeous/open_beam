@@ -8,7 +8,6 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(title: const Text('About App'), centerTitle: true),
       body: SafeArea(
@@ -44,17 +43,13 @@ class _AppHeaderSection extends StatelessWidget {
       children: [
         const SizedBox(height: 12),
         Text(
-          'Vizio Smart Remote',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+          'Open Beam',
+          style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 4),
         Text(
           'Version $version ($_build)',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+          style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
         ),
       ],
     );
@@ -80,9 +75,7 @@ class _DeveloperSection extends StatelessWidget {
           children: [
             Text(
               'About the Developer',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             Text(
@@ -117,9 +110,7 @@ class _AppDetailsSection extends StatelessWidget {
         Card(
           elevation: 0,
           color: theme.colorScheme.surfaceContainerLow,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: const Column(
             children: [
               ListTile(
@@ -156,24 +147,18 @@ class _LegalAndLicensesSection extends StatelessWidget {
     return Column(
       children: [
         ListTile(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           leading: const Icon(Icons.description_outlined),
           title: const Text('Open Source Licenses'),
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () {
             showLicensePage(
               context: context,
-              applicationName: 'Vizio Smart Remote',
+              applicationName: 'Open Beam',
               applicationVersion: '1.0.0',
               applicationIcon: Padding(
                 padding: EdgeInsets.all(10.0),
-                child: Image.asset(
-                  'assets/icon/icon.png',
-                  height: 128,
-                  width: 128,
-                ),
+                child: Image.asset('assets/icon/icon.png', height: 128, width: 128),
               ),
             );
           },
@@ -182,7 +167,7 @@ class _LegalAndLicensesSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
-            'Disclaimer: This application is independently developed and is not affiliated with, endorsed by, or sponsored by Vizio, Inc.',
+            'Disclaimer: This application is independently developed and is not affiliated with, endorsed by, or sponsored by Roku, Inc., Vizio, Inc., or Sony Corporation. All product names, trademarks, and registered trademarks belong to their respective owners.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: Theme.of(context).colorScheme.outline,

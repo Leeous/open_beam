@@ -1,5 +1,5 @@
 output: dist/
-app_name: vizio_remote
+app_name: open_beam
 
 # Global build arguments applied across targets
 build_args:
@@ -14,13 +14,13 @@ releases:
         package:
           platform: linux
           target: appimage
-          desktop_file: linux/packaging/vizio_remote.desktop
+          desktop_file: linux/packaging/open_beam.desktop
 
       - name: linux-deb
         package:
           platform: linux
           target: deb
-          desktop_file: linux/packaging/vizio_remote.desktop
+          desktop_file: linux/packaging/open_beam.desktop
 
       - name: linux-tar
         package:

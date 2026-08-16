@@ -1,15 +1,24 @@
-add_id: com.leeous.vizio_remote
-display_name: Vizio Remote
+add_id: com.leeous.open_beam
+display_name: Open Beam
+package_name: open-beam
 icon: assets/icon/icon.png
+
+maintainer:
+  - name: Cody Fields (Leeous)
+    email: contact@leeous.com
+
+priority:
 
 keywords:
   - Utility
   - Remote
 
-generic_name: Vizio Remote
+generic_name: Open Beam
 
 categories:
   - AudioVideo
   - TV
   - Network
   - Utility
+
+startup_notify: true

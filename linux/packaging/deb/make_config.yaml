@@ -1,0 +1,28 @@
+display_name: Open Beam
+package_name: open_beam
+maintainer:
+  name: Cody Fields
+  email: contact@leeous.com
+
+priority: optional
+section: utils
+architecture: amd64
+installed_size: 0 # Automatically calculated if set to 0
+
+# Desktop Entry & App Integration
+desktop_file: linux/packaging/open_beam.desktop
+icon: assets/icon/icon.png
+
+# Package Summary & Description
+summary: Control your Smart TV over the local network.
+description: |
+  A lightweight, fast remote control application for SmartCast TVs.
+  Features custom D-pad navigation, volume control, and input switching
+  over your local Wi-Fi network.
+
+# System Dependencies (Debian / Ubuntu runtime dependencies)
+dependencies:
+  - libgtk-3-0
+  - libglib2.0-0
+  - libsecret-1-0
+  - libjson-glib-1.0-0

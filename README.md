@@ -1,11 +1,11 @@
 <div align="center">
 
 
-<img src="https://raw.githubusercontent.com/Leeous/vizio_remote/main/assets/icon/icon.svg" width="96">
+<img src="https://raw.githubusercontent.com/Leeous/open_beam/main/assets/icon/icon.svg" width="96">
 
-# Vizio Remote
+# Open Beam
 
-A cross-platform Vizio SmartCast remote control application built with Flutter.
+A cross-platform Smart TV remote control application built with Flutter.
 
 ![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=flat&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-%230175C2.svg?style=flat&logo=dart&logoColor=white)

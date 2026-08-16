@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.vizio_remote"
+    namespace = "com.example.open_beam"
     // flutter.compileSdkVersion may point to 36; explicitly require 37 to satisfy some plugin AAR metadata
     compileSdk = 37
     ndkVersion = flutter.ndkVersion
@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.leeous.vizio_remote"
+        applicationId = "com.leeous.open_beam"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

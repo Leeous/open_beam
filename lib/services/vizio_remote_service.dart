@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-import 'package:vizio_remote/services/logging_helper.dart';
+import 'package:open_beam/services/logging_helper.dart';
 
 class VizioRemoteService {
   final String tvIp;
@@ -16,8 +16,7 @@ class VizioRemoteService {
 
   VizioRemoteService({required this.tvIp, this.port = 7345, this.authToken}) {
     final ioClient = HttpClient()
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
     ioClient.connectionTimeout = const Duration(seconds: 8);
 
     _client = IOClient(ioClient);
@@ -49,9 +48,7 @@ class VizioRemoteService {
 
         Object? decodedBody;
         try {
-          decodedBody = response.body.isNotEmpty
-              ? jsonDecode(response.body)
-              : null;
+          decodedBody = response.body.isNotEmpty ? jsonDecode(response.body) : null;
         } catch (_) {
           decodedBody = response.body;
         }
@@ -101,10 +98,7 @@ class VizioRemoteService {
     required String deviceName,
   }) async {
     const endpoint = '/pairing/start';
-    final body = <String, dynamic>{
-      'DEVICE_ID': deviceId,
-      'DEVICE_NAME': deviceName,
-    };
+    final body = <String, dynamic>{'DEVICE_ID': deviceId, 'DEVICE_NAME': deviceName};
 
     final response = await sendPutRequest(endpoint: endpoint, body: body);
     if (response == null) return null;
@@ -180,7 +174,7 @@ class VizioRemoteService {
   void _debugLog(String label, String url, {required Object? body}) {
     if (!kDebugMode) return;
     final payload = body is String ? body : jsonEncode(body);
-    dPrint('VizioRemoteService: $label $url');
+    dPrint('open_beam: $label $url');
     dPrint('VizioRemoteService: BODY $payload');
   }
 }

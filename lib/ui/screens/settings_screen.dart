@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vizio_remote/ui/screens/about_screen.dart';
-import 'package:vizio_remote/ui/theme_controller.dart';
-import 'package:vizio_remote/ui/widgets/app_bar.dart';
+import 'package:open_beam/ui/screens/about_screen.dart';
+import 'package:open_beam/ui/theme_controller.dart';
+import 'package:open_beam/ui/widgets/app_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -72,9 +72,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _lightMode = value;
                 }),
-                ThemeController.updateTheme(
-                  value ? ThemeMode.light : ThemeMode.dark,
-                ),
+                ThemeController.updateTheme(value ? ThemeMode.light : ThemeMode.dark),
               },
             ),
             SwitchListTile(
@@ -89,9 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SwitchListTile(
               title: Text('Haptic Feedback'),
               secondary: Icon(Icons.vibration),
-              subtitle: Text(
-                'Enable/Disable haptic feedback on remote presses.',
-              ),
+              subtitle: Text('Enable/Disable haptic feedback on remote presses.'),
               value: _hapticFeedback,
               onChanged: _updateHaptics,
             ),
@@ -100,9 +96,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               leading: Icon(Icons.info),
               title: Text('About'),
               onTap: () => {
-                Navigator.of(context).push(
-                  MaterialPageRoute<dynamic>(builder: (_) => AboutScreen()),
-                ),
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<dynamic>(builder: (_) => AboutScreen())),
               },
             ),
           ],

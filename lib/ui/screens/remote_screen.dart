@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vizio_remote/services/vizio_remote_service.dart';
+import 'package:open_beam/services/vizio_remote_service.dart';
 
 class RemoteScreen extends StatefulWidget {
   final String tvName;
@@ -64,9 +64,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
 
     final children = [_buildDPad(context), _buildControlRow(context)];
 
-    final orderedWidgets = _reverseRemoteOrder
-        ? children.reversed.toList()
-        : children;
+    final orderedWidgets = _reverseRemoteOrder ? children.reversed.toList() : children;
 
     return Scaffold(
       appBar: AppBar(
@@ -76,9 +74,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             Text(widget.tvName),
             Text(
               widget.tvIp,
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white70),
             ),
           ],
         ),
@@ -91,10 +87,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: orderedWidgets,
-        ),
+        child: Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: orderedWidgets),
       ),
     );
   }

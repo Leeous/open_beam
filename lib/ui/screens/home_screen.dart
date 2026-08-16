@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:vizio_remote/ui/screens/screens.dart';
-import 'package:vizio_remote/ui/widgets/widgets.dart';
+import 'package:open_beam/ui/screens/screens.dart';
+import 'package:open_beam/ui/widgets/widgets.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,25 +12,13 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: ListView(
           children: <Widget>[
-            MenuTile(
-              icon: Icons.tv_sharp,
-              text: 'TVs',
-              destination: TVListScreen(),
-            ),
+            MenuTile(icon: Icons.tv_sharp, text: 'TVs', destination: TVListScreen()),
             MenuTile(
               icon: Icons.gamepad,
               text: 'Remote',
-              destination: RemoteScreen(
-                tvName: 'tvName',
-                tvIp: '',
-                authToken: '',
-              ),
+              destination: RemoteScreen(tvName: 'tvName', tvIp: '', authToken: ''),
             ),
-            MenuTile(
-              icon: Icons.settings,
-              text: 'Settings',
-              destination: SettingsScreen(),
-            ),
+            MenuTile(icon: Icons.settings, text: 'Settings', destination: SettingsScreen()),
           ],
         ),
       ),

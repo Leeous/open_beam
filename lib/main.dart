@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
-import 'package:vizio_remote/data/repositories/tv_cache_repository.dart';
-import 'package:vizio_remote/ui/screens/screens.dart';
+import 'package:open_beam/data/repositories/tv_cache_repository.dart';
+import 'package:open_beam/ui/screens/screens.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vizio_remote/ui/app_theme.dart';
-import 'package:vizio_remote/ui/theme_controller.dart';
+import 'package:open_beam/ui/app_theme.dart';
+import 'package:open_beam/ui/theme_controller.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -19,16 +19,14 @@ void main() async {
   await ThemeController.loadTheme();
 
   // Load cached TVs
-  getIt.registerSingleton<TvCacheRepository>(
-    TvCacheRepository(prefs, secureStorage),
-  );
+  getIt.registerSingleton<TvCacheRepository>(TvCacheRepository(prefs, secureStorage));
 
-  runApp(VizioRemoteApp(seenOnboarding: seenOnboarding));
+  runApp(OpenBeamApp(seenOnboarding: seenOnboarding));
 }
 
-class VizioRemoteApp extends StatelessWidget {
+class OpenBeamApp extends StatelessWidget {
   final bool seenOnboarding;
-  const VizioRemoteApp({super.key, required this.seenOnboarding});
+  const OpenBeamApp({super.key, required this.seenOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +34,7 @@ class VizioRemoteApp extends StatelessWidget {
       valueListenable: ThemeController.themeNotifier,
       builder: (context, currentMode, child) {
         return MaterialApp(
-          title: 'Vizio Remote',
+          title: 'Open Beam',
           debugShowCheckedModeBanner: true,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
@@ -49,8 +47,6 @@ class VizioRemoteApp extends StatelessWidget {
   }
 }
 
-
-
 // class RemoteHomeScreen extends StatelessWidget {
-  
+
 // }
