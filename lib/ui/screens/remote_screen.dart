@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:open_beam/data/models/discovered_tv.dart';
+import 'package:open_beam/data/models/tv_brand.dart';
+import 'package:open_beam/data/tv_provider.dart';
+import 'package:open_beam/models/vizio_payload.dart';
+import 'package:open_beam/services/tv_provider_factory.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:open_beam/services/vizio_remote_service.dart';
 
 class RemoteScreen extends StatefulWidget {
   final String tvName;
   final String tvIp;
   final int port;
   final String authToken;
+  final TvBrand brand;
 
   const RemoteScreen({
     super.key,
@@ -15,6 +20,7 @@ class RemoteScreen extends StatefulWidget {
     required this.tvIp,
     required this.authToken,
     this.port = 7345,
+    this.brand = TvBrand.vizio,
   });
 
   @override
@@ -22,7 +28,7 @@ class RemoteScreen extends StatefulWidget {
 }
 
 class _RemoteScreenState extends State<RemoteScreen> {
-  late final VizioRemoteService _service;
+  late final TvProvider _provider;
   bool _isLoading = true;
   bool _hapticFeedback = true;
   bool _reverseRemoteOrder = false;
@@ -30,11 +36,15 @@ class _RemoteScreenState extends State<RemoteScreen> {
   @override
   void initState() {
     super.initState();
-    _service = VizioRemoteService(
-      tvIp: widget.tvIp,
+    final discovered = DiscoveredTv(
+      name: widget.tvName,
+      ipAddress: widget.tvIp,
       port: widget.port,
-      authToken: widget.authToken,
+      brand: widget.brand,
+      authToken: widget.authToken.isNotEmpty ? widget.authToken : null,
+      isPaired: widget.authToken.isNotEmpty,
     );
+    _provider = TvProviderFactory.create(discovered);
     _loadPreferences();
   }
 
@@ -47,13 +57,12 @@ class _RemoteScreenState extends State<RemoteScreen> {
     });
   }
 
-  Future<void> _sendKey(int codeSet, int code, String actionName) async {
-    // Only play haptics if enabled in settings_screen
+  Future<void> _sendKey(TvKey key) async {
     if (_hapticFeedback) {
       HapticFeedback.lightImpact();
     }
 
-    await _service.sendKeyPress(codeSet, code);
+    await _provider.pressKey(key);
   }
 
   @override
@@ -82,7 +91,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           IconButton(
             icon: const Icon(Icons.power_settings_new, color: Colors.redAccent),
             tooltip: 'Power Toggle',
-            onPressed: () => _sendKey(11, 0, 'Power Toggle'),
+            onPressed: () => _sendKey(TvKey.home),
           ),
         ],
       ),
@@ -125,7 +134,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             ElevatedButton(
               style: dpadButtonStyle(radii: [16, 16, 0, 0]),
-              onPressed: () => _sendKey(3, 8, 'Up'),
+              onPressed: () => _sendKey(TvKey.up),
               child: const Icon(Icons.keyboard_arrow_up),
             ),
             const SizedBox(width: 8),
@@ -134,17 +143,17 @@ class _RemoteScreenState extends State<RemoteScreen> {
               children: [
                 ElevatedButton(
                   style: dpadButtonStyle(radii: [16, 0, 0, 16]),
-                  onPressed: () => _sendKey(3, 1, 'Left'),
+                  onPressed: () => _sendKey(TvKey.left),
                   child: const Icon(Icons.keyboard_arrow_left),
                 ),
                 ElevatedButton(
                   style: dpadButtonStyle(iconSize: 32),
-                  onPressed: () => _sendKey(3, 2, 'OK'),
+                  onPressed: () => _sendKey(TvKey.select),
                   child: const Icon(Icons.circle),
                 ),
                 ElevatedButton(
                   style: dpadButtonStyle(radii: [0, 16, 16, 0]),
-                  onPressed: () => _sendKey(3, 7, 'Right'),
+                  onPressed: () => _sendKey(TvKey.right),
                   child: const Icon(Icons.keyboard_arrow_right),
                 ),
               ],
@@ -152,7 +161,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             const SizedBox(width: 8),
             ElevatedButton(
               style: dpadButtonStyle(radii: [0, 0, 16, 16]),
-              onPressed: () => _sendKey(3, 0, 'Down'),
+              onPressed: () => _sendKey(TvKey.down),
               child: const Icon(Icons.keyboard_arrow_down),
             ),
           ],
@@ -169,7 +178,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Back')),
             IconButton.outlined(
-              onPressed: () => _sendKey(4, 0, 'Back'),
+              onPressed: () => _sendKey(TvKey.back),
               icon: const Icon(Icons.arrow_back),
             ),
           ],
@@ -178,12 +187,12 @@ class _RemoteScreenState extends State<RemoteScreen> {
           children: [
             IconButton.filledTonal(
               icon: const Icon(Icons.volume_up),
-              onPressed: () => _sendKey(5, 1, 'Volume Up'),
+              onPressed: () => _sendKey(TvKey.volUp),
             ),
             const Padding(padding: EdgeInsets.all(10), child: Text('Volume')),
             IconButton.filledTonal(
               icon: const Icon(Icons.volume_down),
-              onPressed: () => _sendKey(5, 0, 'Volume Down'),
+              onPressed: () => _sendKey(TvKey.volDown),
             ),
           ],
         ),
@@ -192,7 +201,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Mute')),
             IconButton.outlined(
               icon: const Icon(Icons.volume_off),
-              onPressed: () => _sendKey(5, 2, 'Mute'),
+              onPressed: () => _sendKey(TvKey.mute),
             ),
           ],
         ),
@@ -201,7 +210,7 @@ class _RemoteScreenState extends State<RemoteScreen> {
             Padding(padding: EdgeInsetsGeometry.all(10), child: Text('Home')),
             IconButton.outlined(
               icon: const Icon(Icons.home),
-              onPressed: () => _sendKey(4, 3, 'Home'),
+              onPressed: () => _sendKey(TvKey.home),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:open_beam/ui/screens/about_screen.dart';
 import 'package:open_beam/ui/theme_controller.dart';
@@ -36,12 +37,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await _prefs?.setBool('reverse_remote_order', value);
   }
 
-  Future<void> _updateLightMode(bool value) async {
-    setState(() => _lightMode = value);
-
-    await _prefs?.setBool('enable_light_mode', value);
-  }
-
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -50,6 +45,45 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _reverseRemoteOrder = prefs.getBool('reverse_remote_order') ?? false;
       _isLoading = false;
     });
+  }
+
+  Future<void> _clearAllData() async {
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Clear all data?'),
+        content: const Text(
+          'This will delete saved TV data and paired device tokens from storage.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Clear Data'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldClear != true) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    await const FlutterSecureStorage().deleteAll();
+
+    if (!mounted) return;
+
+    await _loadPreferences();
+
+    final currentContext = context;
+    if (!mounted || !currentContext.mounted) return;
+
+    ScaffoldMessenger.of(
+      currentContext,
+    ).showSnackBar(const SnackBar(content: Text('Saved data cleared.')));
   }
 
   @override
@@ -72,7 +106,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 setState(() {
                   _lightMode = value;
                 }),
-                ThemeController.updateTheme(value ? ThemeMode.light : ThemeMode.dark),
+                ThemeController.updateTheme(
+                  value ? ThemeMode.light : ThemeMode.dark,
+                ),
               },
             ),
             SwitchListTile(
@@ -87,18 +123,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SwitchListTile(
               title: Text('Haptic Feedback'),
               secondary: Icon(Icons.vibration),
-              subtitle: Text('Enable/Disable haptic feedback on remote presses.'),
+              subtitle: Text(
+                'Enable/Disable haptic feedback on remote presses.',
+              ),
               value: _hapticFeedback,
               onChanged: _updateHaptics,
             ),
-            // ListTile(leading: Icon(Icons.refresh), title: Text("Reset to defaults"), onTap: SharedPreferences.,),
+            ListTile(
+              leading: const Icon(Icons.delete_forever),
+              title: const Text('Clear data'),
+              subtitle: const Text(
+                'Remove cached TVs, preferences, and secure tokens.',
+              ),
+              onTap: _clearAllData,
+            ),
             ListTile(
               leading: Icon(Icons.info),
               title: Text('About'),
               onTap: () => {
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute<dynamic>(builder: (_) => AboutScreen())),
+                Navigator.of(context).push(
+                  MaterialPageRoute<dynamic>(builder: (_) => AboutScreen()),
+                ),
               },
             ),
           ],
