@@ -1,6 +1,10 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:open_beam/models/http_method.dart';
 import 'package:open_beam/models/paired_tv_device.dart';
 import 'package:open_beam/services/http_service.dart';
+import 'package:open_beam/services/logging_helper.dart';
 
 class DiscoveredTvCandidate {
   final String ipAddress;
@@ -23,7 +27,7 @@ class TvDiscoveryProber {
 
   const TvDiscoveryProber({required this._httpService});
 
-  Future<DiscoveredTvCandidate> probeIp(String ip) async {
+  Future<DiscoveredTvCandidate?> probeIp(String ip) async {
     final rokuCandidate = await _probeRoku(ip);
     if (rokuCandidate != null) return rokuCandidate;
 
@@ -50,7 +54,25 @@ class TvDiscoveryProber {
           requiresPairing: false,
         );
       }
-    } catch (error) {}
+    } on SocketException catch (e) {
+      dPrint('Roku probe: no connection to $ip: $e');
+      return null;
+    } on TimeoutException catch (e) {
+      dPrint('Roku probe: timeout for $ip: $e');
+      return null;
+    } on HttpException catch (e) {
+      dPrint('Roku probe: HTTP error for $ip: $e');
+      return null;
+    } on FormatException catch (e) {
+      // Unexpected response format — surface to caller/test harness
+      dPrint('Roku probe: unexpected response format from $ip: $e');
+      rethrow;
+    } catch (e, st) {
+      // Unknown/unexpected errors should not be silently swallowed
+      dPrint('Roku probe: unexpected error for $ip: $e\n$st');
+      rethrow;
+    }
+
     return null;
   }
 
@@ -71,7 +93,23 @@ class TvDiscoveryProber {
           requiresPairing: true,
         );
       }
-    } catch (error) {}
+    } on SocketException catch (e) {
+      dPrint('Vizio probe: no connection to $ip: $e');
+      return null;
+    } on TimeoutException catch (e) {
+      dPrint('Vizio probe: timeout for $ip: $e');
+      return null;
+    } on HttpException catch (e) {
+      dPrint('Vizio probe: HTTP error for $ip: $e');
+      return null;
+    } on FormatException catch (e) {
+      dPrint('Vizio probe: unexpected response format from $ip: $e');
+      rethrow;
+    } catch (e, st) {
+      dPrint('Vizio probe: unexpected error for $ip: $e\n$st');
+      rethrow;
+    }
+
     return null;
   }
 }
