@@ -1,0 +1,32 @@
+info:
+  name: Start pairing
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: https://10.0.0.80:7345/pairing/start
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "DEVICE_ID": {{DEVICE_ID}},
+        "DEVICE_NAME": {{DEVICE_NAME}}
+      }
+  auth: inherit
+
+runtime:
+  variables:
+    - name: DEVICE_ID
+      value: default_id
+    - name: DEVICE_NAME
+      value: default_name
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

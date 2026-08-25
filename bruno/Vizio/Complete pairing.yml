@@ -1,0 +1,27 @@
+info:
+  name: Complete pairing
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: https://10.0.0.80:7345/pairing/pair
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "DEVICE_ID": "tucker",
+        "CHALLENGE_TYPE": 1,
+        "RESPONSE_VALUE": "2444", 
+        "PAIRING_REQ_TOKEN": 677315
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
