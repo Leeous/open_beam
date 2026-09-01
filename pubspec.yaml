@@ -32,6 +32,8 @@ dependencies:
   device_info_plus: ^13.2.0
   flutter_secure_storage: ^11.0.0
   get_it: ^9.2.1
+  xml: ^6.6.1
+  xml2json: ^6.2.7
 dev_dependencies:
   flutter_test:
     sdk: flutter
