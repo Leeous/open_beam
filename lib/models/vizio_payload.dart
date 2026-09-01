@@ -1,7 +1,7 @@
 class VizioPairingInitiation {
   final bool isSuccess;
   final String? pairingReqToken;
-  final String? challengeType;
+  final int? challengeType;
   final String? errorMessage;
 
   const VizioPairingInitiation._({
@@ -13,19 +13,15 @@ class VizioPairingInitiation {
 
   factory VizioPairingInitiation.success({
     required String pairingReqToken,
-    required String challengeType,
-  }) =>
-      VizioPairingInitiation._(
-        isSuccess: true,
-        pairingReqToken: pairingReqToken,
-        challengeType: challengeType,
-      );
+    required int challengeType,
+  }) => VizioPairingInitiation._(
+    isSuccess: true,
+    pairingReqToken: pairingReqToken,
+    challengeType: challengeType,
+  );
 
   factory VizioPairingInitiation.failure(String error) =>
-      VizioPairingInitiation._(
-        isSuccess: false,
-        errorMessage: error,
-      );
+      VizioPairingInitiation._(isSuccess: false, errorMessage: error);
 }
 
 class VizioPairingResult {
@@ -40,14 +36,8 @@ class VizioPairingResult {
   });
 
   factory VizioPairingResult.success(String authToken) =>
-      VizioPairingResult._(
-        isSuccess: true,
-        authToken: authToken,
-      );
+      VizioPairingResult._(isSuccess: true, authToken: authToken);
 
   factory VizioPairingResult.failure(String error) =>
-      VizioPairingResult._(
-        isSuccess: false,
-        errorMessage: error,
-      );
+      VizioPairingResult._(isSuccess: false, errorMessage: error);
 }
