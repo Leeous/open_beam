@@ -66,7 +66,9 @@ class HTTPService {
         try {
           // convertToRawJson returns a JSON string (or throws FormatException).
           // Decode that JSON string into a Map<String, dynamic> for callers.
-          final raw = response.body.isNotEmpty ? convertToRawJson(response.body) : '{}';
+          final raw = response.body.isNotEmpty
+              ? convertToRawJson(response.body)
+              : '{}';
           final data = jsonDecode(raw) as Map<String, dynamic>;
 
           dPrint(data);
