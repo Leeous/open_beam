@@ -18,25 +18,26 @@ class VizioTvService extends TVService {
   });
 
   static const Map<TvKey, (int codeSet, int code)> _keyMap = {
-    TvKey.up: (0, 0),
-    TvKey.down: (0, 0),
-    TvKey.left: (0, 0),
-    TvKey.right: (0, 0),
-    TvKey.select: (0, 0),
-    TvKey.back: (0, 0),
-    TvKey.home: (0, 0),
-    TvKey.volDown: (0, 0),
-    TvKey.volUp: (0, 0),
-    TvKey.playPause: (0, 0),
-    TvKey.mute: (0, 0),
-    TvKey.powerOn: (0, 0),
-    TvKey.powerOff: (0, 0),
+    TvKey.up: (3, 8),
+    TvKey.down: (3, 0),
+    TvKey.left: (3, 1),
+    TvKey.right: (3, 7),
+    TvKey.select: (3, 2),
+    TvKey.back: (4, 0),
+    TvKey.home: (4, 3),
+    TvKey.volDown: (5, 0),
+    TvKey.volUp: (5, 1),
+    TvKey.playPause: (2, 3),
+    TvKey.mute: (5, 4),
+    TvKey.powerOn: (11, 1),
+    TvKey.powerOff: (11, 0),
   };
 
   Uri get _keyCommandUrl => Uri.https('$ipAddress:$port', '/key_command/');
 
   @override
   Future<HttpResponse<void>> sendKey(TvKey key) async {
+    dPrint(authToken);
     final keyCodes = _keyMap[key];
 
     if (keyCodes == null) {
@@ -52,7 +53,7 @@ class VizioTvService extends TVService {
       ],
     };
 
-    final headers = {'AUTH-TOKEN': authToken};
+    final headers = {'AUTH': authToken};
 
     final response = await _httpService.sendRequest(
       url: _keyCommandUrl,
