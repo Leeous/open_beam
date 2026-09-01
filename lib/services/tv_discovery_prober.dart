@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:open_beam/models/http_method.dart';
@@ -93,11 +92,9 @@ class TvDiscoveryProber {
       final res = await _httpService.sendRequest(
         url: Uri.https('$ip:7345', '/state/device/deviceinfo'),
         method: HttpMethod.get,
-        timeout: const Duration(seconds: 10),
+        timeout: const Duration(seconds: 5),
         headers: {'Content-Type': 'application/json'},
       );
-
-      dPrint('Attempting to pair with Vizio TV ($ip)...');
 
       if (res.isSuccess) {
         return DiscoveredTvCandidate(
