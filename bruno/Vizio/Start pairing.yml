@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: https://10.0.0.80:7345/pairing/start
+  url: https://10.0.0.81:7345/pairing/start
   headers:
     - name: Content-Type
       value: application/json
@@ -13,8 +13,8 @@ http:
     type: json
     data: |-
       {
-        "DEVICE_ID": {{DEVICE_ID}},
-        "DEVICE_NAME": {{DEVICE_NAME}}
+        "DEVICE_ID": "{{DEVICE_ID}}",
+        "DEVICE_NAME": "{{DEVICE_NAME}}"
       }
   auth: inherit
 
@@ -30,3 +30,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
