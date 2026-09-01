@@ -1,429 +1,294 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:open_beam/data/models/discovered_tv.dart';
-import 'package:open_beam/data/models/tv_brand.dart';
-import 'package:open_beam/data/repositories/tv_cache_repository.dart';
-import 'package:open_beam/main.dart';
-import 'package:open_beam/services/device_info_helper.dart';
-import 'package:open_beam/services/vizio_pairing_service.dart';
-import 'package:open_beam/ui/screens/remote_screen.dart';
+import 'package:open_beam/services/tv_discovery_prober.dart';
+import 'package:open_beam/services/tv_storage_service.dart';
+import 'package:open_beam/models/paired_tv_device.dart';
+import 'package:open_beam/services/lan_scanner_service.dart';
+import 'package:open_beam/services/tv_brands/vizio/vizio_pairing_manager.dart';
+import 'package:open_beam/services/http_service.dart';
+import 'package:open_beam/services/logging_helper.dart';
 
-class TVListScreen extends StatefulWidget {
-  const TVListScreen({super.key});
+class TvListScreen extends StatefulWidget {
+  final TvStorageService storageService;
+  final LanScannerService scannerService;
+  final HTTPService httpService;
+
+  const TvListScreen({
+    super.key,
+    required this.storageService,
+    required this.scannerService,
+    required this.httpService,
+  });
 
   @override
-  State<TVListScreen> createState() => _TVListScreenState();
+  State<TvListScreen> createState() => _TvListScreenState();
 }
 
-class _TVListScreenState extends State<TVListScreen> {
-  final TvCacheRepository _tvRepo = getIt<TvCacheRepository>();
-  final VizioPairingService _vizioPairingService = VizioPairingService();
-
-  List<({DiscoveredTv tv, bool isOnline})> _tvList = [];
-  bool _isLoading = true;
+class _TvListScreenState extends State<TvListScreen> {
+  List<PairedTvDevice> _cachedDevices = [];
+  final List<DiscoveredTvCandidate> _discoveredDevices = [];
+  StreamSubscription<DiscoveredTvCandidate>? _scanSubscription;
   bool _isScanning = false;
 
   @override
   void initState() {
     super.initState();
-    _loadCachedTvs();
-    _runFullScan();
+    _loadCachedAndScan();
   }
 
-  Future<void> _loadCachedTvs() async {
-    setState(() => _isLoading = true);
-    final verified = await _tvRepo.getVerifiedCachedTvs();
-    if (!mounted) return;
+  @override
+  void dispose() {
+    _scanSubscription?.cancel();
+    super.dispose();
+  }
 
+  /// 1. Load devices cached for this specific Wi-Fi, then kick off auto-probe
+  Future<void> _loadCachedAndScan() async {
+    final cached = await widget.storageService.getPairedDevices();
+    if (mounted) {
+      setState(() => _cachedDevices = cached);
+      _startDiscovery();
+    }
+  }
+
+  /// 2. Stream discoveries from SSDP + Subnet Sweep
+  void _startDiscovery() {
+    _scanSubscription?.cancel();
     setState(() {
-      _tvList = verified;
-      _isLoading = false;
+      _discoveredDevices.clear();
+      _isScanning = true;
     });
+
+    _scanSubscription = widget.scannerService.scan().listen(
+      (candidate) {
+        if (!mounted) return;
+        // Avoid listing candidates that are already saved in cached list
+        final alreadySaved = _cachedDevices.any(
+          (d) => d.ipAddress == candidate.ipAddress,
+        );
+        final alreadyDiscovered = _discoveredDevices.any(
+          (d) => d.ipAddress == candidate.ipAddress,
+        );
+
+        if (!alreadySaved && !alreadyDiscovered) {
+          setState(() => _discoveredDevices.add(candidate));
+        }
+      },
+      onDone: () => setState(() => _isScanning = false),
+      onError: (Object e) {
+        dPrint('Scan stream error: $e');
+        setState(() => _isScanning = false);
+      },
+    );
   }
 
-  Future<void> _runFullScan() async {
-    setState(() => _isScanning = true);
-    await _tvRepo.scanAndSyncNetwork();
-    await _loadCachedTvs();
-    if (!mounted) return;
-
-    setState(() => _isScanning = false);
-  }
-
-  Future<void> _onTvSelected(DiscoveredTv tv) async {
-    if (tv.brand == TvBrand.roku) {
-      _navigateToRemote(
-        tvName: tv.name,
-        tvIp: tv.ipAddress,
-        port: tv.port,
-        authToken: tv.authToken ?? '',
-        brand: tv.brand,
+  /// 3. Select a device: Route Roku straight to storage, Vizio to PIN dialog
+  Future<void> _onDeviceSelected(DiscoveredTvCandidate candidate) async {
+    if (!candidate.requiresPairing) {
+      // Direct connection (Roku)
+      final device = PairedTvDevice(
+        id: '${candidate.ipAddress}:${candidate.port}',
+        name: candidate.defaultName,
+        ipAddress: candidate.ipAddress,
+        port: candidate.port,
+        brand: candidate.brand,
       );
-      return;
-    }
 
-    if (tv.isPaired && tv.authToken != null && tv.authToken!.isNotEmpty) {
-      _navigateToRemote(
-        tvName: tv.name,
-        tvIp: tv.ipAddress,
-        port: tv.port,
-        authToken: tv.authToken!,
-        brand: tv.brand,
-      );
-      return;
+      await _persistAndOpenRemote(device);
+    } else {
+      // Challenge-response connection (Vizio)
+      _showVizioPairingDialog(candidate);
     }
-
-    await _executePairingFlow(tv);
   }
 
-  Future<void> _executePairingFlow(DiscoveredTv tv) async {
-    if (tv.brand != TvBrand.vizio) {
-      return;
+  Future<void> _persistAndOpenRemote(PairedTvDevice device) async {
+    await widget.storageService.saveDevice(device);
+    await widget.storageService.setActiveDeviceId(device.id);
+
+    if (mounted) {
+      Navigator.pushNamed(context, '/remote', arguments: device);
     }
+  }
 
-    final localDeviceName = await DeviceInfoHelper.getHostDeviceName();
-    final deviceId = _buildDeviceId(localDeviceName);
-
-    if (!mounted) return;
-
-    _showLoadingDialog();
-
-    final challenge = await _vizioPairingService.startPairing(
-      tvIp: tv.ipAddress,
-      port: tv.port,
-      deviceId: deviceId,
-      deviceName: localDeviceName,
+  /// 4. Vizio PIN input handshake modal
+  Future<void> _showVizioPairingDialog(DiscoveredTvCandidate candidate) async {
+    final pairingManager = VizioPairingManager(
+      ipAddress: candidate.ipAddress,
+      port: candidate.port,
+      httpService: widget.httpService,
     );
 
-    if (!mounted) return;
-    Navigator.of(context).pop();
-
-    if (challenge == null) {
+    // Step 1: Initiate pairing to display PIN on TV
+    final initResult = await pairingManager.initiatePairing();
+    if (!initResult.isSuccess || initResult.pairingReqToken == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to initiate pairing with TV.')),
-      );
-      return;
-    }
-
-    final pin = await _showPinDialog(tv.name);
-    if (pin == null || pin.isEmpty) return;
-
-    if (!mounted) return;
-    _showLoadingDialog();
-
-    final authToken = await _vizioPairingService.confirmPairing(
-      tvIp: tv.ipAddress,
-      port: tv.port,
-      deviceId: deviceId,
-      pin: pin,
-      pairingReqToken: challenge.pairingReqToken,
-      challengeType: challenge.challengeType,
-    );
-
-    if (!mounted) return;
-    Navigator.of(context).pop();
-
-    if (authToken == null || authToken.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pairing failed. Please check the PIN and try again.'),
+        SnackBar(
+          content: Text(
+            'Failed to initiate pairing: ${initResult.errorMessage}',
+          ),
         ),
       );
       return;
     }
 
-    final updatedTv = tv.copyWith(
-      authToken: authToken,
-      isPaired: true,
-      lastSeen: DateTime.now(),
-    );
-    await _tvRepo.saveTv(updatedTv);
-    await _loadCachedTvs();
+    final pinController = TextEditingController();
 
-    _navigateToRemote(
-      tvName: updatedTv.name,
-      tvIp: updatedTv.ipAddress,
-      port: updatedTv.port,
-      authToken: authToken,
-      brand: updatedTv.brand,
-    );
-  }
-
-  void _navigateToRemote({
-    required String tvName,
-    required String tvIp,
-    required int port,
-    required String authToken,
-    required TvBrand brand,
-  }) {
-    Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (context) => RemoteScreen(
-          tvName: tvName,
-          tvIp: tvIp,
-          port: port,
-          authToken: authToken,
-          brand: brand,
-        ),
-      ),
-    );
-  }
-
-  void _showLoadingDialog() {
-    showDialog<void>(
+    if (!mounted) return;
+    showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: SizedBox(
-          height: 80,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
-    );
-  }
-
-  Future<String?> _showPinDialog(String tvName) {
-    final controller = TextEditingController();
-
-    return showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Pair with $tvName'),
+      builder: (ctx) => AlertDialog(
+        title: Text('Pair with ${candidate.defaultName}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Enter the PIN displayed on your TV screen.'),
+            const Text(
+              'Enter the 4-digit PIN currently displayed on your TV screen:',
+            ),
             const SizedBox(height: 16),
             TextField(
-              controller: controller,
+              controller: pinController,
               keyboardType: TextInputType.number,
+              maxLength: 4,
               autofocus: true,
               decoration: const InputDecoration(
-                labelText: 'TV PIN',
                 border: OutlineInputBorder(),
+                hintText: '1234',
+                counterText: '',
               ),
             ),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Confirm PIN'),
+            onPressed: () async {
+              final pin = pinController.text.trim();
+              if (pin.length != 4) return;
+
+              final pairResult = await pairingManager.completePairing(
+                pin: pin,
+                pairingReqToken: initResult.pairingReqToken!,
+                challengeType: initResult.challengeType ?? 1,
+              );
+
+              if (pairResult.isSuccess && pairResult.authToken != null) {
+                final device = PairedTvDevice(
+                  id: '${candidate.ipAddress}:${candidate.port}',
+                  name: candidate.defaultName,
+                  ipAddress: candidate.ipAddress,
+                  port: candidate.port,
+                  brand: candidate.brand,
+                  authToken: pairResult.authToken,
+                );
+
+                if (ctx.mounted) Navigator.pop(ctx);
+                await _persistAndOpenRemote(device);
+              } else {
+                if (ctx.mounted) {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      content: Text(pairResult.errorMessage ?? 'Invalid PIN'),
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Pair'),
           ),
         ],
       ),
     );
-  }
-
-  String _buildDeviceId(String deviceName) {
-    final cleaned = deviceName
-        .toUpperCase()
-        .replaceAll(RegExp(r'[^A-Z0-9_]'), '_')
-        .replaceAll(RegExp(r'_+'), '_')
-        .trim();
-
-    return 'OPEN_BEAM_${cleaned.isEmpty ? 'APP' : cleaned}';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Open Beam'),
+        title: const Text('Available TVs'),
         actions: [
           IconButton(
             icon: _isScanning
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
-                : const Icon(Icons.radar),
-            tooltip: 'Scan Network',
-            onPressed: _isScanning ? null : _runFullScan,
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh Status',
-            onPressed: _loadCachedTvs,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            tooltip: 'Add TV by IP',
-            onPressed: _addTvByIp,
+                : const Icon(Icons.refresh),
+            onPressed: _isScanning ? null : _startDiscovery,
           ),
         ],
       ),
-      body: _buildBody(),
-    );
-  }
-
-  Future<void> _addTvByIp() async {
-    final ipController = TextEditingController();
-    TvBrand brand = TvBrand.roku;
-
-    final result = await showDialog<({String ip, TvBrand brand})?>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Add TV by IP'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: ipController,
-                  autofocus: true,
-                  decoration: const InputDecoration(
-                    labelText: 'IP Address',
-                    hintText: '192.168.1.50',
-                  ),
+      body: ListView(
+        children: [
+          if (_cachedDevices.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text(
+                'PAIRED ON THIS NETWORK',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey,
                 ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<TvBrand>(
-                  initialValue: brand,
-                  decoration: const InputDecoration(labelText: 'Brand'),
-                  items: TvBrand.values
-                      .map(
-                        (value) => DropdownMenuItem(
-                          value: value,
-                          child: Text(value.name.toUpperCase()),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => brand = value);
-                    }
-                  },
+              ),
+            ),
+            ..._cachedDevices.map(
+              (device) => ListTile(
+                leading: Icon(
+                  device.brand == TvBrand.roku ? Icons.tv : Icons.connected_tv,
                 ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
+                title: Text(device.name),
+                subtitle: Text(
+                  '${device.ipAddress} (${device.brand.name.toUpperCase()})',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _persistAndOpenRemote(device),
               ),
-              FilledButton(
-                onPressed: () {
-                  final ip = ipController.text.trim();
-                  if (ip.isEmpty) return;
-                  Navigator.of(context).pop((ip: ip, brand: brand));
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-
-    if (result == null || !mounted) return;
-
-    final tv = DiscoveredTv(
-      name: result.brand == TvBrand.roku ? 'Roku TV' : 'Vizio TV',
-      ipAddress: result.ip,
-      port: result.brand == TvBrand.roku ? 8060 : 7345,
-      brand: result.brand,
-      isPaired: false,
-      lastSeen: DateTime.now(),
-    );
-
-    await _tvRepo.saveTv(tv);
-    await _loadCachedTvs();
-  }
-
-  Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_tvList.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.tv_off, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text(
-              'No TVs Found',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'Ensure your TV is turned on and connected\nto the same Wi-Fi network.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.radar),
-              label: const Text('Scan Local Network'),
-              onPressed: _runFullScan,
-            ),
+            const Divider(),
           ],
-        ),
-      );
-    }
-
-    return ListView.separated(
-      itemCount: _tvList.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final entry = _tvList[index];
-        final tv = entry.tv;
-        final isOnline = entry.isOnline;
-
-        return ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 8,
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Text(
+              'DISCOVERED DEVICES',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+            ),
           ),
-          leading: Icon(
-            Icons.tv,
-            size: 32,
-            color: isOnline ? Colors.green : Colors.grey,
-          ),
-          title: Text(
-            tv.name,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          subtitle: Text(
-            '${tv.ipAddress}:${tv.port} • ${tv.brand.name.toUpperCase()} • ${tv.isPaired ? 'Paired' : 'Not Paired'}',
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
+          if (_discoveredDevices.isEmpty && _isScanning)
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Center(child: Text('Scanning Wi-Fi network for TVs...')),
+            )
+          else if (_discoveredDevices.isEmpty && !_isScanning)
+            const Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Center(
+                child: Text('No new TVs found. Tap refresh to scan again.'),
+              ),
+            )
+          else
+            ..._discoveredDevices.map(
+              (candidate) => ListTile(
+                leading: const Icon(Icons.add_to_queue),
+                title: Text(candidate.defaultName),
+                subtitle: Text(
+                  '${candidate.ipAddress} • ${candidate.requiresPairing ? "Requires PIN" : "Direct Connect"}',
                 ),
-                decoration: BoxDecoration(
-                  color: isOnline
-                      ? Colors.green.withValues(alpha: 0.15)
-                      : Colors.grey.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  isOnline ? 'Online' : 'Offline',
-                  style: TextStyle(
-                    color: isOnline ? Colors.green : Colors.grey,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+                trailing: ElevatedButton(
+                  onPressed: () => _onDeviceSelected(candidate),
+                  child: Text(candidate.requiresPairing ? 'Pair' : 'Connect'),
                 ),
               ),
-              const SizedBox(width: 8),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
-          onTap: isOnline ? () => _onTvSelected(tv) : null,
-        );
-      },
+            ),
+        ],
+      ),
     );
   }
 }
