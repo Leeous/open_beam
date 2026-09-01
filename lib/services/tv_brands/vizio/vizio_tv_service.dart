@@ -37,7 +37,6 @@ class VizioTvService extends TVService {
 
   @override
   Future<HttpResponse<void>> sendKey(TvKey key) async {
-    dPrint(authToken);
     final keyCodes = _keyMap[key];
 
     if (keyCodes == null) {

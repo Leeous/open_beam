@@ -46,6 +46,7 @@ class _TvListScreenState extends State<TvListScreen> {
   /// 1. Load devices cached for this specific Wi-Fi, then kick off auto-probe
   Future<void> _loadCachedAndScan() async {
     final cached = await widget.storageService.getPairedDevices();
+
     if (mounted) {
       setState(() => _cachedDevices = cached);
       _startDiscovery();
@@ -118,7 +119,6 @@ class _TvListScreenState extends State<TvListScreen> {
 
   /// 4. Vizio PIN input handshake modal
   Future<void> _showVizioPairingDialog(DiscoveredTvCandidate candidate) async {
-    dPrint(candidate);
     final pairingManager = VizioPairingManager(
       ipAddress: candidate.ipAddress,
       port: candidate.port,
