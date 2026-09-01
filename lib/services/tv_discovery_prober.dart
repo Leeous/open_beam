@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:open_beam/models/http_method.dart';
@@ -79,12 +80,13 @@ class TvDiscoveryProber {
   Future<DiscoveredTvCandidate?> _probeVizio(String ip) async {
     try {
       final res = await _httpService.sendRequest(
-        url: Uri.https('$ip:7345', '/state/device/device_info'),
+        url: Uri.https('$ip:7345', '/state/device/deviceinfo'),
         method: HttpMethod.get,
-        timeout: const Duration(seconds: 5),
+        timeout: const Duration(seconds: 2),
+        headers: {'Content-Type': 'application/json'},
       );
 
-      if (res.isSuccess || res.statusCode == 401 || res.statusCode == 403) {
+      if (res.isSuccess) {
         return DiscoveredTvCandidate(
           ipAddress: ip,
           defaultName: 'Vizio TV',
