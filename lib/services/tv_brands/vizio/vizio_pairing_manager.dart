@@ -73,15 +73,7 @@ class VizioPairingManager {
       url: _baseUrl,
       method: HttpMethod.put,
       body: body,
-      headers: {'Connection': 'close'},
     );
-
-    // If the high-level client returned a connection-closed style error, try the
-    // low-level fallback which can be more tolerant of malformed/truncated headers.
-    if (!response.isSuccess && (response.errorMessage?.contains('Connection closed') == true || response.errorMessage?.contains('ClientException') == true)) {
-      dPrint('High-level HTTP client reported error (${response.errorMessage}); trying fallback HttpClient');
-      response = await _fallbackRequest(_baseUrl, body);
-    }
 
     if (!response.isSuccess || response.data == null) {
       dPrint('Failed to initiate pairing: ${response.errorMessage}');
@@ -151,13 +143,7 @@ class VizioPairingManager {
       url: _pairCompleteUrl,
       method: HttpMethod.put,
       body: body,
-      headers: {'Connection': 'close'},
     );
-
-    if (!response.isSuccess && (response.errorMessage?.contains('Connection closed') == true || response.errorMessage?.contains('ClientException') == true)) {
-      dPrint('High-level HTTP client reported error (${response.errorMessage}); trying fallback HttpClient for completePairing');
-      response = await _fallbackRequest(_pairCompleteUrl, body);
-    }
 
     if (response.data == null) {
       return VizioPairingResult.failure(
@@ -191,56 +177,4 @@ class VizioPairingManager {
 
     return VizioPairingResult.success(authToken);
   }
-
-
-  // Fallback low-level HTTP PUT in case package:http client fails (some TVs close
-  // connections unusually or return malformed headers). This attempts a raw
-  // dart:io HttpClient request and returns a compatible HttpResponse.
-  Future<HttpResponse<Map<String, dynamic>>> _fallbackRequest(
-    Uri url,
-    Map body,
-  ) async {
-    final client = HttpClient();
-    try {
-      final req = await client.openUrl('PUT', url);
-      // Set common headers; explicitly set Content-Length to avoid chunked
-      // Transfer-Encoding which some TVs don't handle.
-      req.headers.set('Content-Type', 'application/json');
-      req.headers.set('Connection', 'close');
-      req.headers.set('Accept', 'application/json');
-      // Host header may help devices that validate it strictly
-      req.headers.set('Host', url.authority);
-
-      final payload = jsonEncode(body);
-      final payloadBytes = utf8.encode(payload);
-      req.contentLength = payloadBytes.length;
-      req.add(payloadBytes);
-
-      final resp = await req.close();
-      final status = resp.statusCode;
-      final respBody = await resp.transform(utf8.decoder).join();
-
-      dPrint('Fallback response status: $status from $url');
-      dPrint(respBody);
-
-      if (status >= 200 && status < 300) {
-        try {
-          final raw = respBody.isNotEmpty ? convertToRawJson(respBody) : '{}';
-          final data = jsonDecode(raw) as Map<String, dynamic>;
-          return HttpResponse.success(data, statusCode: status);
-        } catch (e) {
-          dPrint('Fallback parsing error: $e');
-          return HttpResponse.failure('Fallback parsing error: $e', statusCode: status);
-        }
-      }
-
-      return HttpResponse.failure('Server returned HTTP status $status', statusCode: status);
-    } catch (e) {
-      dPrint('Fallback request failed: $e');
-      return HttpResponse.failure('Fallback request failed: $e');
-    } finally {
-      client.close(force: true);
-    }
-  }
 }
-
