@@ -1,5 +1,7 @@
+import 'package:open_beam/models/http_method.dart';
 import 'package:open_beam/models/tv_key.dart';
 import 'package:open_beam/services/http_service.dart';
+import 'package:open_beam/services/logging_helper.dart';
 import 'package:open_beam/services/tv_service.dart';
 
 class RokuTvService extends TVService {
@@ -20,8 +22,8 @@ class RokuTvService extends TVService {
     TvKey.powerOff: 'PowerOff',
 
     // Volume & Audio
-    TvKey.volumeUp: 'VolumeUp',
-    TvKey.volumeDown: 'VolumeDown',
+    TvKey.volUp: 'VolumeUp',
+    TvKey.volDown: 'VolumeDown',
     TvKey.mute: 'VolumeMute',
 
     // Navigation & Menus
@@ -40,4 +42,40 @@ class RokuTvService extends TVService {
     // Inputs
     // TvKey.inputHdmi1: 'InputHDMI1',
   };
+
+  Uri get _keyCommandUrl => Uri.https('$ipAddress:$port', '/key_command/');
+
+  @override
+  Future<HttpResponse<void>> sendKey(TvKey key) async {
+    final keyCodes = _keyMap[key];
+
+    if (keyCodes == null) {
+      dPrint('The $key key is not supported on Vizio TVs.');
+      return HttpResponse.failure(
+        'The $key key is not supported on Vizio TVs.',
+      );
+    }
+
+    final body = {
+      'KEYLIST': [
+        {'CODESET': key, 'ACTION': 'KEYPRESS'},
+      ],
+    };
+
+    final response = await _httpService.sendRequest(
+      url: _keyCommandUrl,
+      method: HttpMethod.put,
+      body: body,
+    );
+
+    if (response.isSuccess) {
+      return HttpResponse.success(null, statusCode: response.statusCode);
+    }
+
+    dPrint('Roku sendKey failed: ${response.errorMessage}');
+    return HttpResponse.failure(
+      response.errorMessage ?? ' Failed to send command to $name.',
+      statusCode: response.statusCode,
+    );
+  }
 }
