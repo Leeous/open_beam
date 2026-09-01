@@ -71,8 +71,6 @@ class HTTPService {
               : '{}';
           final data = jsonDecode(raw) as Map<String, dynamic>;
 
-          dPrint(data);
-
           return HttpResponse.success(data, statusCode: response.statusCode);
         } catch (e) {
           dPrint('Failed to parse response body from $url: $e');
