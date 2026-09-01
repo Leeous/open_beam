@@ -1,11 +1,8 @@
 import 'package:open_beam/models/http_method.dart';
 import 'package:open_beam/models/vizio_payload.dart';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:open_beam/services/http_service.dart';
 import 'package:open_beam/services/logging_helper.dart';
-import 'package:open_beam/services/converter_utils.dart';
 
 /// Manages the two-step pairing handshake with a Vizio SmartCast TV.
 ///
@@ -55,8 +52,8 @@ class VizioPairingManager {
   /// Pairing process endpoints. I have no reason to believe these are not consistant
   /// but may allow user to edit in the future.
   // Vizio pairing endpoints use plain HTTP on the device's port
-  Uri get _baseUrl => Uri.http('$ipAddress:$port', '/pairing/start');
-  Uri get _pairCompleteUrl => Uri.http('$ipAddress:$port', '/pairing/pair');
+  Uri get _baseUrl => Uri.https('$ipAddress:$port', '/pairing/start');
+  Uri get _pairCompleteUrl => Uri.https('$ipAddress:$port', '/pairing/pair');
 
   /// Starts the pairing handshake with a Vizio TV.
   ///
