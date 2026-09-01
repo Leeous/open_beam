@@ -7,6 +7,7 @@ import 'package:open_beam/services/lan_scanner_service.dart';
 import 'package:open_beam/services/tv_brands/vizio/vizio_pairing_manager.dart';
 import 'package:open_beam/services/http_service.dart';
 import 'package:open_beam/services/logging_helper.dart';
+import 'package:open_beam/ui/screens/screens.dart';
 
 class TvListScreen extends StatefulWidget {
   final TvStorageService storageService;
@@ -106,12 +107,18 @@ class _TvListScreenState extends State<TvListScreen> {
     await widget.storageService.setActiveDeviceId(device.id);
 
     if (mounted) {
-      Navigator.pushNamed(context, '/remote', arguments: device);
+      Navigator.push(
+        context,
+        MaterialPageRoute<void>(
+          builder: (context) => RemoteScreen(device: device),
+        ),
+      );
     }
   }
 
   /// 4. Vizio PIN input handshake modal
   Future<void> _showVizioPairingDialog(DiscoveredTvCandidate candidate) async {
+    dPrint(candidate);
     final pairingManager = VizioPairingManager(
       ipAddress: candidate.ipAddress,
       port: candidate.port,
@@ -135,7 +142,7 @@ class _TvListScreenState extends State<TvListScreen> {
     final pinController = TextEditingController();
 
     if (!mounted) return;
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
