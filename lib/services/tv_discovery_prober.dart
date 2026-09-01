@@ -21,6 +21,17 @@ class DiscoveredTvCandidate {
     required this.port,
     required this.requiresPairing,
   });
+
+  @override
+  String toString() {
+    return 'DiscoveredTvCandidate(\n'
+        '  ip: $ipAddress,\n'
+        '  name: $defaultName,\n'
+        '  brand: $brand,\n'
+        '  port: $port,\n'
+        '  requires pairing?: $requiresPairing\n'
+        ')';
+  }
 }
 
 class TvDiscoveryProber {
@@ -82,9 +93,11 @@ class TvDiscoveryProber {
       final res = await _httpService.sendRequest(
         url: Uri.https('$ip:7345', '/state/device/deviceinfo'),
         method: HttpMethod.get,
-        timeout: const Duration(seconds: 2),
+        timeout: const Duration(seconds: 10),
         headers: {'Content-Type': 'application/json'},
       );
+
+      dPrint('Attempting to pair with Vizio TV ($ip)...');
 
       if (res.isSuccess) {
         return DiscoveredTvCandidate(
