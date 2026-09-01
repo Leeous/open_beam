@@ -23,7 +23,7 @@ class PairedTvDevice {
     'ipAddress': ipAddress,
     'port': port,
     'brand': brand.name,
-    authToken ?? 'authToken': authToken,
+    'authToken': authToken,
   };
 
   factory PairedTvDevice.fromJson(Map<String, dynamic> json) => PairedTvDevice(
