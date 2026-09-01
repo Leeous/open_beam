@@ -6,7 +6,6 @@ import 'package:open_beam/models/http_method.dart';
 import 'package:open_beam/services/converter_utils.dart';
 import 'package:open_beam/services/logging_helper.dart';
 import 'package:http/http.dart' as http;
-import 'package:xml/xml.dart';
 
 class HTTPService {
   final http.Client _client;
