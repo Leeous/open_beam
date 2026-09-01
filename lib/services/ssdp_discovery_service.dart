@@ -5,11 +5,11 @@ import 'dart:async';
 import 'package:open_beam/services/logging_helper.dart';
 
 class SsdpDiscoveryService {
-  static const String _multicastAddress = "239.255.255.250";
+  static const String _multicastAddress = '239.255.255.250';
   static const int _multicastPort = 1900;
 
   Stream<String> discoverTvIps({
-    Duration timeout = const Duration(seconds: 8),
+    Duration timeout = const Duration(seconds: 5),
   }) async* {
     RawDatagramSocket? socket;
     final seenIps = <String>{};
