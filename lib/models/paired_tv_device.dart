@@ -22,7 +22,7 @@ class PairedTvDevice {
     'name': name,
     'ipAddress': ipAddress,
     'port': port,
-    'brand': brand,
+    'brand': brand.name,
     authToken ?? 'authToken': authToken,
   };
 
