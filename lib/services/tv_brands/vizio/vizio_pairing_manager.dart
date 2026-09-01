@@ -1,7 +1,11 @@
 import 'package:open_beam/models/http_method.dart';
 import 'package:open_beam/models/vizio_payload.dart';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:open_beam/services/http_service.dart';
 import 'package:open_beam/services/logging_helper.dart';
+import 'package:open_beam/services/converter_utils.dart';
 
 /// Manages the two-step pairing handshake with a Vizio SmartCast TV.
 ///
@@ -50,8 +54,9 @@ class VizioPairingManager {
 
   /// Pairing process endpoints. I have no reason to believe these are not consistant
   /// but may allow user to edit in the future.
-  Uri get _baseUrl => Uri.https('$ipAddress:$port', '/pairing/start');
-  Uri get _pairCompleteUrl => Uri.https('$ipAddress:$port', '/pairing/pair');
+  // Vizio pairing endpoints use plain HTTP on the device's port
+  Uri get _baseUrl => Uri.http('$ipAddress:$port', '/pairing/start');
+  Uri get _pairCompleteUrl => Uri.http('$ipAddress:$port', '/pairing/pair');
 
   /// Starts the pairing handshake with a Vizio TV.
   ///
@@ -63,11 +68,20 @@ class VizioPairingManager {
   Future<VizioPairingInitiation> initiatePairing() async {
     final body = {'DEVICE_ID': deviceId, 'DEVICE_NAME': deviceName};
 
-    final response = await httpService.sendRequest(
+    HttpResponse<Map<String, dynamic>> response;
+    response = await httpService.sendRequest(
       url: _baseUrl,
       method: HttpMethod.put,
       body: body,
+      headers: {'Connection': 'close'},
     );
+
+    // If the high-level client returned a connection-closed style error, try the
+    // low-level fallback which can be more tolerant of malformed/truncated headers.
+    if (!response.isSuccess && (response.errorMessage?.contains('Connection closed') == true || response.errorMessage?.contains('ClientException') == true)) {
+      dPrint('High-level HTTP client reported error (${response.errorMessage}); trying fallback HttpClient');
+      response = await _fallbackRequest(_baseUrl, body);
+    }
 
     if (!response.isSuccess || response.data == null) {
       dPrint('Failed to initiate pairing: ${response.errorMessage}');
@@ -76,9 +90,35 @@ class VizioPairingManager {
       );
     }
 
-    final item = response.data!['ITEM'] as Map<String, dynamic>;
+    final rawItem = response.data!['ITEM'];
+    if (rawItem == null || rawItem is! Map<String, dynamic>) {
+      final status = response.data!['STATUS'];
+      if (status is Map<String, dynamic>) {
+        final result = status['RESULT']?.toString() ?? 'UNKNOWN';
+        final detail = status['DETAIL']?.toString() ?? '';
+        return VizioPairingInitiation.failure(
+          'Pairing initiation failed: $result ${detail.isNotEmpty ? '- $detail' : ''}',
+        );
+      }
+
+      return VizioPairingInitiation.failure(
+        'Invalid pairing initiation response: ${response.data}',
+      );
+    }
+
+    final item = rawItem;
     final token = item['PAIRING_REQ_TOKEN']?.toString();
-    final challengeType = item['CHALLENGE_TYPE']?.toString() ?? '1';
+
+    // CHALLENGE_TYPE may be returned as int or string; normalize to int with default 1
+    int challengeType;
+    final rawChallenge = item['CHALLENGE_TYPE'];
+    if (rawChallenge is int) {
+      challengeType = rawChallenge;
+    } else if (rawChallenge is String) {
+      challengeType = int.tryParse(rawChallenge) ?? 1;
+    } else {
+      challengeType = 1;
+    }
 
     if (token == null || token.isEmpty) {
       return VizioPairingInitiation.failure(
@@ -95,7 +135,7 @@ class VizioPairingManager {
   Future<VizioPairingResult> completePairing({
     required String pin,
     required String pairingReqToken,
-    String challengeType = '1',
+    int challengeType = 1,
   }) async {
     /// Form JSON body containing [deviceId]
     ///
@@ -106,17 +146,43 @@ class VizioPairingManager {
       'PAIRING_REQ_TOKEN': int.tryParse(pairingReqToken) ?? pairingReqToken,
     };
 
-    final response = await httpService.sendRequest(
+    HttpResponse<Map<String, dynamic>> response;
+    response = await httpService.sendRequest(
       url: _pairCompleteUrl,
       method: HttpMethod.put,
       body: body,
+      headers: {'Connection': 'close'},
     );
 
-    if (response.data == null) {
-      return VizioPairingResult.failure('error');
+    if (!response.isSuccess && (response.errorMessage?.contains('Connection closed') == true || response.errorMessage?.contains('ClientException') == true)) {
+      dPrint('High-level HTTP client reported error (${response.errorMessage}); trying fallback HttpClient for completePairing');
+      response = await _fallbackRequest(_pairCompleteUrl, body);
     }
 
-    final item = response.data!['ITEM'] as Map<String, dynamic>;
+    if (response.data == null) {
+      return VizioPairingResult.failure(
+        response.errorMessage ?? 'No response data',
+      );
+    }
+
+    final rawItem = response.data!['ITEM'];
+    if (rawItem == null || rawItem is! Map<String, dynamic>) {
+      // If ITEM is missing, try to extract a STATUS block for a clearer error message
+      final status = response.data!['STATUS'];
+      if (status is Map<String, dynamic>) {
+        final result = status['RESULT']?.toString() ?? 'UNKNOWN';
+        final detail = status['DETAIL']?.toString() ?? '';
+        return VizioPairingResult.failure(
+          'Pairing failed: $result ${detail.isNotEmpty ? '- $detail' : ''}',
+        );
+      }
+
+      return VizioPairingResult.failure(
+        'Invalid pairing response: ${response.data}',
+      );
+    }
+
+    final item = rawItem;
     final authToken = item['AUTH_TOKEN']?.toString();
 
     if (authToken == null || authToken.isEmpty) {
@@ -125,4 +191,56 @@ class VizioPairingManager {
 
     return VizioPairingResult.success(authToken);
   }
+
+
+  // Fallback low-level HTTP PUT in case package:http client fails (some TVs close
+  // connections unusually or return malformed headers). This attempts a raw
+  // dart:io HttpClient request and returns a compatible HttpResponse.
+  Future<HttpResponse<Map<String, dynamic>>> _fallbackRequest(
+    Uri url,
+    Map body,
+  ) async {
+    final client = HttpClient();
+    try {
+      final req = await client.openUrl('PUT', url);
+      // Set common headers; explicitly set Content-Length to avoid chunked
+      // Transfer-Encoding which some TVs don't handle.
+      req.headers.set('Content-Type', 'application/json');
+      req.headers.set('Connection', 'close');
+      req.headers.set('Accept', 'application/json');
+      // Host header may help devices that validate it strictly
+      req.headers.set('Host', url.authority);
+
+      final payload = jsonEncode(body);
+      final payloadBytes = utf8.encode(payload);
+      req.contentLength = payloadBytes.length;
+      req.add(payloadBytes);
+
+      final resp = await req.close();
+      final status = resp.statusCode;
+      final respBody = await resp.transform(utf8.decoder).join();
+
+      dPrint('Fallback response status: $status from $url');
+      dPrint(respBody);
+
+      if (status >= 200 && status < 300) {
+        try {
+          final raw = respBody.isNotEmpty ? convertToRawJson(respBody) : '{}';
+          final data = jsonDecode(raw) as Map<String, dynamic>;
+          return HttpResponse.success(data, statusCode: status);
+        } catch (e) {
+          dPrint('Fallback parsing error: $e');
+          return HttpResponse.failure('Fallback parsing error: $e', statusCode: status);
+        }
+      }
+
+      return HttpResponse.failure('Server returned HTTP status $status', statusCode: status);
+    } catch (e) {
+      dPrint('Fallback request failed: $e');
+      return HttpResponse.failure('Fallback request failed: $e');
+    } finally {
+      client.close(force: true);
+    }
+  }
 }
+
