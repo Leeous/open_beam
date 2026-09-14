@@ -51,6 +51,7 @@ jobs:
         run: flutter pub get
 
       - name: Build packages with FastForge
+        working-directory: ./open_beam
         run: |
           export PATH="$PATH:$HOME/.pub-cache/bin"
           fastforge release --name linux-and-android
