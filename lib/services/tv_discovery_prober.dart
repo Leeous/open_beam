@@ -56,10 +56,14 @@ class TvDiscoveryProber {
         timeout: const Duration(seconds: 5),
       );
 
+      final json = res.data;
+
       if (res.isSuccess) {
         return DiscoveredTvCandidate(
           ipAddress: ip,
-          defaultName: 'Roku TV',
+          defaultName:
+              json?['device-info']['friendly-device-name'] as String? ??
+              'Roku TV',
           brand: TvBrand.roku,
           port: 8060,
           requiresPairing: false,
@@ -96,10 +100,13 @@ class TvDiscoveryProber {
         headers: {'Content-Type': 'application/json'},
       );
 
+      final json = res.data;
+
       if (res.isSuccess) {
         return DiscoveredTvCandidate(
           ipAddress: ip,
-          defaultName: 'Vizio TV',
+          defaultName:
+              json?['ITEMS'][0]['VALUE']['CAST_NAME'] as String? ?? 'Vizio TV',
           brand: TvBrand.vizio,
           port: 7345,
           requiresPairing: true,
