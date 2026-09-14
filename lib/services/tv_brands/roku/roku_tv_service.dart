@@ -11,7 +11,7 @@ class RokuTvService extends TVService {
   const RokuTvService({
     required super.ipAddress,
     required super.name,
-    this.port = 7345,
+    this.port = 8060,
     required this._httpService,
   });
 
@@ -43,29 +43,20 @@ class RokuTvService extends TVService {
     // TvKey.inputHdmi1: 'InputHDMI1',
   };
 
-  Uri get _keyCommandUrl => Uri.https('$ipAddress:$port', '/key_command/');
+  Uri get _keyCommandUrl => Uri.http('$ipAddress:$port', '/keypress/');
 
   @override
   Future<HttpResponse<void>> sendKey(TvKey key) async {
     final keyCodes = _keyMap[key];
 
     if (keyCodes == null) {
-      dPrint('The $key key is not supported on Vizio TVs.');
-      return HttpResponse.failure(
-        'The $key key is not supported on Vizio TVs.',
-      );
+      dPrint('The $key key is not supported on Roku TVs.');
+      return HttpResponse.failure('The $key key is not supported on Roku TVs.');
     }
-
-    final body = {
-      'KEYLIST': [
-        {'CODESET': key, 'ACTION': 'KEYPRESS'},
-      ],
-    };
 
     final response = await _httpService.sendRequest(
       url: _keyCommandUrl,
-      method: HttpMethod.put,
-      body: body,
+      method: HttpMethod.post,
     );
 
     if (response.isSuccess) {
