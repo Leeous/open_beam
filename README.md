@@ -17,8 +17,8 @@ A cross-platform Smart TV remote control application built with Flutter.
 ### Target Brand & Protocol Support
 | Brand / OS | Protocol | Local Discovery | Auth Method | D-Pad / Nav | App Launching | WoL (Power On) | Status / Implementation |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: | :--- |
-| **Roku** *(Roku OS)* | ECP (HTTP REST) | SSDP (`1900/UDP`) | None (Unauthenticated) | 🟡 | 📋 | 📋 | **WIP** |
-| **Vizio** *(SmartCast)* | HTTPS REST | mDNS (`5353/UDP`) / SSDP | PIN Handshake $\rightarrow$ Token | ✅ | 📋 | ❓ | **Supported** |
+| **Roku** *(Roku OS)* | ECP (HTTP REST) | SSDP (`1900/UDP`) | None (Unauthenticated) | ✅ | 📋 | 📋 | **WIP** |
+| **Vizio** *(SmartCast)* | HTTPS REST | mDNS (`5353/UDP`) / SSDP | PIN Handshake $\rightarrow$ Token | ✅ | 📋 | ❌ | **Supported** |
 | **Sony** *(Android/Google TV)* | IRCC / JSON-RPC (HTTP/S) | SSDP (`1900/UDP`) / mDNS | Pre-Shared Key (PSK) | 📋 | 📋 | 📋 | **Experimental** *(Untested hardware)* |
 | **Samsung** *(Tizen)* | WebSockets (`8002/WSS`) | SSDP / mDNS | Token Pairing Prompt | 📋 | 📋 | 📋 | **Planned** |
 | **LG** *(webOS)* | WebSockets (`3001/WSS`) | SSDP (`1900/UDP`) | Client Key Handshake | 📋 | 📋 | 📋 | **Planned** |
