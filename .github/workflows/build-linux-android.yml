@@ -53,7 +53,7 @@ jobs:
       - name: Build packages with FastForge
         run: |
           export PATH="$PATH:$HOME/.pub-cache/bin"
-          fastforge release --name ${{ matrix.release-profile }}
+          fastforge release --name linux-and-android
         shell: bash
 
       - name: Upload Build Artifacts
