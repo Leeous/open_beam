@@ -1,4 +1,4 @@
-enum TvBrand { roku, vizio, lg, samsung }
+enum TvBrand { roku, vizio, lg, samsung, sony }
 
 class PairedTvDevice {
   final String id;
